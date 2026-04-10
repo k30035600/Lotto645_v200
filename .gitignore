@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Environment Variables (API Key 등 보안 정보)
+.env
+
+# Logs
+logs/
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

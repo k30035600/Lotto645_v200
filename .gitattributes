@@ -1,0 +1,16 @@
+# UTF-8 및 줄 바꿈 설정 (.gitattributes)
+# 모든 텍스트 파일은 자동으로 처리하고, 행 끝(EOL)은 lf로 통일 (GitHub 표준)
+* text=auto eol=lf
+
+# 특정 확장자들에 대해 텍스트임을 명시하고 인코딩 힌트 제공
+*.py text working-tree-encoding=UTF-8
+*.js text working-tree-encoding=UTF-8
+*.json text working-tree-encoding=UTF-8
+*.html text working-tree-encoding=UTF-8
+*.css text working-tree-encoding=UTF-8
+*.txt text working-tree-encoding=UTF-8
+*.md text working-tree-encoding=UTF-8
+
+# 엑셀 파일은 바이너리로 취급하여 깨짐 방지
+*.xlsx binary
+*.xls binary

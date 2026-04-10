@@ -1,0 +1,10 @@
+# A(Lotto645) — 이 저장소만 배포
+# B(금융거래 통합정보)는 별도 저장소 financial-info 로 배포
+
+services:
+  - type: web
+    runtime: python
+    name: Lotto645
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT
+    plan: free
