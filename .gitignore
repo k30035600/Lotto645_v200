@@ -2,10 +2,14 @@
 __pycache__/
 *.py[cod]
 
-# Virtual Environment
+# Virtual Environment & Core Dependencies
 venv/
 env/
 .venv/
+Lib/
+Include/
+Scripts/
+node_modules/
 
 # Environment Variables (API Key 등 보안 정보)
 .env
@@ -17,5 +21,9 @@ logs/
 # IDE & OS
 .vscode/
 .idea/
+.cursor/
 .DS_Store
 Thumbs.db
+
+# Source / Data internal backups
+.source/
