@@ -848,7 +848,7 @@ async function initializeApp() {
                 const syncRes = await fetch(base + '/api/sync-lotto645', { method: 'POST', cache: 'no-store' });
                 const syncData = await syncRes.json().catch(() => ({}));
                 if (syncData.returnValue === 'success' && syncData.added > 0) {
-                    const newData = await loadFunc();
+                    const newData = await loadFunc('', { bypassCache: true });
                     if (newData && newData.length > 0) {
                         initializeStats(newData);
                         const endInput = document.getElementById('endDate');

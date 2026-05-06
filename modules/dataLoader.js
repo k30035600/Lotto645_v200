@@ -245,16 +245,20 @@ function normalizeLottoData(data) {
 /**
  * Lotto645 데이터 로드 (캐시 우선)
  * @param {string} basePath - 기본 경로
+ * @param {{ bypassCache?: boolean }} [opts] - bypassCache=true면 서버 동기화 직후 등 강제 네트워크 재로드
  * @returns {Promise<Array>} 로또 데이터
  */
-async function loadLotto645Data(basePath = '') {
+async function loadLotto645Data(basePath = '', opts) {
+    const bypassCache = opts && opts.bypassCache === true;
     console.time('LoadLotto645');
 
-    // 1. 캐시 확인
-    const cached = getFromCache(CACHE_KEYS.LOTTO645);
-    if (cached && Array.isArray(cached) && cached.length > 0) {
-        console.timeEnd('LoadLotto645');
-        return cached.sort((a, b) => b.round - a.round);
+    // 1. 캐시 확인 (서버가 xlsx/json 갱신한 뒤에는 무조건 네트워크에서 다시 받아야 함)
+    if (!bypassCache) {
+        const cached = getFromCache(CACHE_KEYS.LOTTO645);
+        if (cached && Array.isArray(cached) && cached.length > 0) {
+            console.timeEnd('LoadLotto645');
+            return cached.sort((a, b) => b.round - a.round);
+        }
     }
 
     // 2. JSON 로드 시도 (CDN/브라우저 캐시 회피: 항상 no-store)
@@ -876,7 +880,7 @@ async function fetchLatestWinningNumbers() {
             return;
         }
 
-        const newData = await loadFunc();
+        const newData = await loadFunc('', { bypassCache: true });
         if (newData && newData.length > 0) {
             await initializeStats(newData);
 
@@ -920,8 +924,22 @@ async function fetchLatestWinningNumbers() {
                 }
             }
 
-            const added = newData.length - (AppState.previousDataCount || 0);
-            alert(`${localEndRound + 1}회 ~ ${apiLatestRound}회 (${missingCount}회차) 추가 완료!\n총 ${newData.length}회차 데이터`);
+            AppState.previousDataCount = newData.length;
+            let maxR = 0;
+            for (let i = 0; i < newData.length; i++) {
+                const r = Number(newData[i].round);
+                if (!Number.isNaN(r) && r > maxR) maxR = r;
+            }
+            const serverRows = syncData.totalRounds != null ? Number(syncData.totalRounds) : null;
+            let msg = `${localEndRound + 1}회 ~ ${apiLatestRound}회 (${missingCount}회차) 추가 완료!\n`;
+            msg += `불러온 데이터 ${newData.length}건 (최고 ${maxR}회)`;
+            if (serverRows != null && !Number.isNaN(serverRows)) {
+                msg += `\n서버 Lotto645.xlsx ${serverRows}행`;
+                if (serverRows !== newData.length) {
+                    msg += `\n※ 건수가 다르면 강력 새로고침 후 다시 확인하세요.`;
+                }
+            }
+            alert(msg);
         } else {
             alert('데이터를 다시 불러오지 못했습니다. 페이지를 새로고침하세요.');
         }
