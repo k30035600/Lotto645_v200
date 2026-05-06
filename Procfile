@@ -1,1 +1,1 @@
-web: python scripts/railway_start.py
+web: python deploy/railway_start.py

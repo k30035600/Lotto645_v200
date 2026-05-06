@@ -8,6 +8,7 @@ env/
 .venv/
 Lib/
 Include/
+Scripts/
 node_modules/
 
 # Environment Variables (API Key 등 보안 정보)

@@ -5,4 +5,4 @@
 cmds = ["sh -c 'if [ -d .source ]; then cp -a .source .source_seed; else mkdir -p .source_seed; fi'"]
 
 [start]
-cmd = "python scripts/railway_start.py"
+cmd = "python deploy/railway_start.py"

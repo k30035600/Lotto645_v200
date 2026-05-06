@@ -5,7 +5,7 @@
     "nixpacksConfigPath": "nixpacks.toml"
   },
   "deploy": {
-    "startCommand": "python scripts/railway_start.py",
+    "startCommand": "python deploy/railway_start.py",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 100
   }
