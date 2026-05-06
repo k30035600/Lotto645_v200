@@ -2193,6 +2193,10 @@ function updateRoundDisplay() {
     const startRoundDateSpan = document.getElementById('startRoundDate');
     const endRoundDateSpan = document.getElementById('endRoundDate');
 
+    if (!startDateInput || !endDateInput || !startRoundInput || !endRoundInput) {
+        return;
+    }
+
     // Sync from date to round
     if (document.activeElement === startDateInput || document.activeElement === endDateInput) {
         const startRound = findRoundFromDateInput(startDateInput.value, true);
@@ -2221,9 +2225,30 @@ function updateRoundDisplay() {
 
 function updateRoundRangeDisplay() {
     updateRoundDisplay();
-}
+    const roundStatsList = document.getElementById('roundStatsList');
+    const data = AppState.currentStatsRounds || AppState.allLotto645Data;
 
-function updateResultFilterAvg() {
+    if (roundStatsList && data && data.length > 0 && AppState.allLotto645Data) {
+        const minRound = data[data.length - 1].round;
+        const maxRound = data[0].round;
+        const total = data.length;
+        const latest = AppState.allLotto645Data[0].round;
+        const rangeLabel = (maxRound === latest) ? ' (최신)' : '';
+
+        roundStatsList.innerHTML = `
+            <div class="stats-box">
+                <div class="stats-section">
+                    <div class="stat-label">선택 범위</div>
+                    <div class="stat-value">${minRound}회 ~ ${maxRound}회${rangeLabel}</div>
+                </div>
+                <div class="stats-section" style="margin-top: 8px;">
+                    <div class="stat-label">선택 회차수</div>
+                    <div class="stat-value">${total}회</div>
+                </div>
+            </div>
+        `;
+    }
+}
     var vals = AppState.chartEndRoundValues;
     if (!vals) return;
 
@@ -2663,32 +2688,6 @@ function updateSaveBoxState() {
 function updateAiDashboard(hasValidGame) { }
 
 function renderAiStats(games, activeTab, tabArea) { }
-
-function updateRoundRangeDisplay() {
-    const roundStatsList = document.getElementById('roundStatsList');
-    const data = AppState.currentStatsRounds || AppState.allLotto645Data;
-
-    if (roundStatsList && data && data.length > 0 && AppState.allLotto645Data) {
-        const minRound = data[data.length - 1].round;
-        const maxRound = data[0].round;
-        const total = data.length;
-        const latest = AppState.allLotto645Data[0].round;
-        const rangeLabel = (maxRound === latest) ? ' (최신)' : '';
-
-        roundStatsList.innerHTML = `
-            <div class="stats-box">
-                <div class="stats-section">
-                    <div class="stat-label">선택 범위</div>
-                    <div class="stat-value">${minRound}회 ~ ${maxRound}회${rangeLabel}</div>
-                </div>
-                <div class="stats-section" style="margin-top: 8px;">
-                    <div class="stat-label">선택 회차수</div>
-                    <div class="stat-value">${total}회</div>
-                </div>
-            </div>
-        `;
-    }
-}
 
 function updateAverageSumDisplay(data) {
     const el = document.getElementById('resultRoundRange');
