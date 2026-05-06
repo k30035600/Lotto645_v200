@@ -296,16 +296,27 @@ def _get_lotto645_data_row_count():
         return None
 
 
-def _lotto645_json_row_stats():
-    """Lotto645.json 건수·최소·최대 회차. 파일 없거나 오류 시 (None, None, None)."""
+def _lotto645_json_stats_extended():
+    """
+    Lotto645.json 한 번 읽어 건수·회차 범위·연속 구간 대비 누락·중복 행 수.
+    Railway 등에서 xlsx/json 행 수는 같지만 회차 '구멍'만 있는 경우 진단용.
+    """
     json_path = (BASE_DIR / '.source' / 'Lotto645.json').resolve()
     if not json_path.is_file():
-        return None, None, None
+        return None
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         if not isinstance(data, list) or len(data) == 0:
-            return 0, None, None
+            return {
+                'length': 0,
+                'minRound': None,
+                'maxRound': None,
+                'uniqueRounds': 0,
+                'spanInclusive': None,
+                'missingInSpan': None,
+                'duplicateRoundRows': None,
+            }
         rounds = []
         for item in data:
             r = item.get('회차')
@@ -316,10 +327,37 @@ def _lotto645_json_row_stats():
             except (TypeError, ValueError):
                 continue
         if not rounds:
-            return len(data), None, None
-        return len(data), min(rounds), max(rounds)
+            return {
+                'length': len(data),
+                'minRound': None,
+                'maxRound': None,
+                'uniqueRounds': 0,
+                'spanInclusive': None,
+                'missingInSpan': None,
+                'duplicateRoundRows': None,
+            }
+        rmin, rmax = min(rounds), max(rounds)
+        span = rmax - rmin + 1
+        uniq = len(set(rounds))
+        return {
+            'length': len(data),
+            'minRound': rmin,
+            'maxRound': rmax,
+            'uniqueRounds': uniq,
+            'spanInclusive': span,
+            'missingInSpan': max(0, span - uniq),
+            'duplicateRoundRows': max(0, len(rounds) - uniq),
+        }
     except Exception:
+        return None
+
+
+def _lotto645_json_row_stats():
+    """Lotto645.json 건수·최소·최대 회차. 파일 없거나 오류 시 (None, None, None)."""
+    ext = _lotto645_json_stats_extended()
+    if ext is None:
         return None, None, None
+    return ext['length'], ext['minRound'], ext['maxRound']
 
 
 def _ensure_lotto645_json_matches_xlsx():
@@ -401,21 +439,35 @@ def api_deploy_info():
     if request.method == 'OPTIONS':
         return '', 204, CORS_OPTIONS_HEADERS
     xlsx_n = _get_lotto645_data_row_count()
-    jlen, jmin, jmax = _lotto645_json_row_stats()
+    jext = _lotto645_json_stats_extended()
+    jlen = jext['length'] if jext else None
+    jmin = jext['minRound'] if jext else None
+    jmax = jext['maxRound'] if jext else None
     commit = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('RAILWAY_GIT_COMMIT') or ''
     branch = os.environ.get('RAILWAY_GIT_BRANCH') or ''
+    lotto_block = {
+        'xlsxDataRows': xlsx_n,
+        'jsonLength': jlen,
+        'jsonMinRound': jmin,
+        'jsonMaxRound': jmax,
+        'pathsDiffer': (
+            xlsx_n is not None and jlen is not None and xlsx_n != jlen
+        ),
+    }
+    if jext and jext.get('minRound') is not None:
+        lotto_block['jsonUniqueRounds'] = jext.get('uniqueRounds')
+        lotto_block['jsonRoundSpan'] = jext.get('spanInclusive')
+        lotto_block['jsonMissingInSpan'] = jext.get('missingInSpan')
+        lotto_block['jsonDuplicateRoundRows'] = jext.get('duplicateRoundRows')
+        lotto_block['dataIntegrityOk'] = (
+            (jext.get('missingInSpan') or 0) == 0
+            and (jext.get('duplicateRoundRows') or 0) == 0
+            and xlsx_n is not None and jlen is not None and xlsx_n == jlen
+        )
     out = {
         'returnValue': 'ok',
         'serverStartTime': SERVER_START_TIME,
-        'lotto645': {
-            'xlsxDataRows': xlsx_n,
-            'jsonLength': jlen,
-            'jsonMinRound': jmin,
-            'jsonMaxRound': jmax,
-            'pathsDiffer': (
-                xlsx_n is not None and jlen is not None and xlsx_n != jlen
-            ),
-        },
+        'lotto645': lotto_block,
         'railway': {
             'gitCommitSha': commit[:40] if commit else None,
             'gitBranch': branch or None,
