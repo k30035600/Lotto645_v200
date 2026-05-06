@@ -15,14 +15,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/k30035600/lotto023.git"
+    "url": "git+https://github.com/k30035600/lotto_v200.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/k30035600/lotto023/issues"
+    "url": "https://github.com/k30035600/lotto_v200/issues"
   },
-  "homepage": "https://github.com/k30035600/lotto023#readme"
+  "homepage": "https://github.com/k30035600/lotto_v200#readme"
 }
