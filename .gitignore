@@ -25,5 +25,4 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Source / Data internal backups
-.source/
+# .source/ — Lotto645·Lotto023 등 데이터는 배포·동기화용으로 저장소에 포함합니다.
