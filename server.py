@@ -49,7 +49,7 @@ app.config['JSON_AS_ASCII'] = False
 logger = get_logger(__name__)
 
 try:
-    from deploy.seed_dot_source import ensure_dot_source_seeded
+    from utils.railway_source_seed import ensure_dot_source_seeded
 
     ensure_dot_source_seeded(BASE_DIR)
 except Exception as _seed_exc:
@@ -859,6 +859,12 @@ def api_lotto645_meta():
     """Lotto645.xlsx 현재 데이터 행 수 반환. 클라이언트가 캐시 여부 검증용으로 사용."""
     if request.method == 'OPTIONS':
         return '', 204, CORS_OPTIONS_HEADERS
+    try:
+        from utils.railway_source_seed import ensure_dot_source_seeded
+
+        ensure_dot_source_seeded(BASE_DIR)
+    except Exception:
+        pass
     _ensure_lotto645_json_matches_xlsx()
     n = _get_lotto645_data_row_count()
     out = {'dataRows': n} if n is not None else {}
@@ -1680,6 +1686,12 @@ def index():
 def static_file(path):
     # Railway 등: gunicorn은 __main__ 변환을 실행하지 않음 → 직접 JSON 요청 시에도 xlsx와 동기화
     if path.replace('\\', '/').lower().endswith('lotto645.json'):
+        try:
+            from utils.railway_source_seed import ensure_dot_source_seeded
+
+            ensure_dot_source_seeded(BASE_DIR)
+        except Exception:
+            pass
         _ensure_lotto645_json_matches_xlsx()
     full = (BASE_DIR / path).resolve()
     base_resolved = BASE_DIR.resolve()

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""gunicorn 기동 전에만 실행. 실제 시드는 deploy.seed_dot_source (server.py에서도 호출)."""
+"""gunicorn 기동 전 시드. server.py 임포트 시에도 동일 모듈이 호출됨."""
 import os
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from deploy.seed_dot_source import ensure_dot_source_seeded
+from utils.railway_source_seed import ensure_dot_source_seeded
 
 
 def main():

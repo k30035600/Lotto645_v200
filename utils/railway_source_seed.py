@@ -1,4 +1,4 @@
-"""Railway 볼륨 등으로 .source 가 비었을 때 이미지 내 시드 디렉터리에서 채움."""
+"""Railway 볼륨 등으로 .source 가 비었을 때 이미지 내 시드에서 채움."""
 import logging
 import shutil
 from pathlib import Path
