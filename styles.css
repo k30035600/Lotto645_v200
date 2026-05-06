@@ -1050,6 +1050,15 @@ html.app-layout-center-only .game-panel .panel-inner > * {
     line-height: 1;
 }
 
+/* 당첨목록 회차 범위: 데이터 누락·중복 시 */
+#resultRoundRange.result-round-range--warn {
+    color: var(--color-expense, #C62828);
+    font-weight: 800;
+    white-space: normal;
+    line-height: 1.25;
+    cursor: help;
+}
+
 input.result-filter-text {
     font-size: 0.78rem;
     font-weight: bold;

@@ -2727,19 +2727,48 @@ function updateAverageSumDisplay(data) {
 
     if (!data || data.length === 0) {
         el.textContent = '[ 0000 ~ 0000, 000회 ]';
+        el.removeAttribute('title');
+        el.classList.remove('result-round-range--warn');
         return;
     }
 
     const rounds = data.map(r => Number(r.round)).filter(r => !isNaN(r));
+    if (rounds.length === 0) {
+        el.textContent = '[ 회차 필드 오류 ]';
+        el.setAttribute('title', '로드된 데이터에 유효한 회차 번호가 없습니다.');
+        el.classList.add('result-round-range--warn');
+        return;
+    }
+
     const startRound = Math.min(...rounds);
     const endRound = Math.max(...rounds);
     const count = data.length;
+    const spanInclusive = endRound - startRound + 1;
+    const uniqueRounds = new Set(rounds).size;
 
     const startStr = startRound.toString().padStart(4, '0');
     const endStr = endRound.toString().padStart(4, '0');
     const countStr = count.toString().padStart(3, '0');
 
-    el.textContent = `[ ${startStr} ~ ${endStr}, ${countStr}회 ]`;
+    let suffix = '';
+    let tip = '';
+    if (uniqueRounds !== count) {
+        suffix = ` · 행중복 ${count - uniqueRounds}`;
+        tip = '회차 번호가 같은 행이 둘 이상 있습니다. Lotto645.xlsx·json을 확인하세요.';
+    } else if (uniqueRounds < spanInclusive) {
+        const missing = spanInclusive - uniqueRounds;
+        suffix = ` · 누락 ${missing}`;
+        tip = '시작~끝 회차 사이에 빈 회차가 있습니다. 배포 서버의 .source 동기화·/api/deploy-info·누락 회차 보강을 확인하세요.';
+    }
+
+    el.textContent = `[ ${startStr} ~ ${endStr}, ${countStr}회 ]${suffix}`;
+    if (tip) {
+        el.setAttribute('title', tip);
+        el.classList.add('result-round-range--warn');
+    } else {
+        el.removeAttribute('title');
+        el.classList.remove('result-round-range--warn');
+    }
 }
 
 function showHelpModal() {
