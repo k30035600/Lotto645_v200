@@ -8,7 +8,8 @@ env/
 .venv/
 Lib/
 Include/
-Scripts/
+# Windows venv는 보통 venv/ 아래에 있음. 루트만 (대소문자 무시 OS에서 scripts/ 오인 방지)
+/Scripts/
 node_modules/
 
 # Environment Variables (API Key 등 보안 정보)
