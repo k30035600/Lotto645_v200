@@ -1,6 +1,9 @@
-# Railway/Nixpacks 빌드 설정 (Flask + Gunicorn)
-# 서비스 Settings의 Root Directory는 비워 두세요(모노레포가 아니면). 오류 예: .../k30035600/Lotto645_v200 does not exist
-# 런타임 시드는 deploy/source_seed(커밋됨)가 우선. 아래는 예비로 .source → .source_seed 복사.
+# Railway/Nixpacks — package.json 때문에 Node만 잡히는 것을 막고 Python으로 고정
+providers = ["python"]
+
+[phases.install]
+cmds = ["python -m pip install --upgrade pip", "python -m pip install -r requirements.txt"]
+
 [phases.build]
 cmds = ["sh -c 'if [ -d .source ]; then cp -a .source .source_seed; else mkdir -p .source_seed; fi'"]
 
