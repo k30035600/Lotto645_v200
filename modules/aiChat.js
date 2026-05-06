@@ -28,36 +28,33 @@ function initAIChat() {
                     localStorage.removeItem('aiChatModalPosition'); // 잘못된 데이터 삭제
                 }
             } else if (!chatModal.style.left || !chatModal.style.top) {
-                // 저장된 위치가 없고, 처음 열릴 때 위치 자동 조정
                 const statsPanel = document.getElementById('statsPanel');
-                if (statsPanel) {
-                    const rect = statsPanel.getBoundingClientRect();
+                const anchorEl = (statsPanel && statsPanel.getBoundingClientRect().width > 2)
+                    ? statsPanel
+                    : (document.getElementById('centerNavBar') || document.querySelector('.game-panel'));
+                if (anchorEl) {
+                    const rect = anchorEl.getBoundingClientRect();
                     const modalWidth = chatModal.offsetWidth || 350;
 
-                    // 1. 수평: 좌측 패널의 정중앙
                     let calcLeft = rect.left + (rect.width - modalWidth) / 2;
-                    if (calcLeft < 10) calcLeft = 10; // 화면 왼쪽 이탈 방지
+                    if (calcLeft < 10) calcLeft = 10;
 
-                    // 2. 수직: 정렬/필터 박스(.stats-sort) 바로 아래
-                    let calcTop = 200; // fallback
-                    const sortBox = statsPanel.querySelector('.stats-sort');
-                    if (sortBox) {
-                        const sortRect = sortBox.getBoundingClientRect();
-                        calcTop = sortRect.bottom + 10;
+                    let calcTop = 200;
+                    const sortBox = statsPanel && statsPanel.querySelector('.stats-sort');
+                    if (sortBox && sortBox.offsetParent !== null) {
+                        calcTop = sortBox.getBoundingClientRect().bottom + 10;
                     } else {
-                        // dateRangeBox fallback
-                        const dateBox = statsPanel.querySelector('#dateRangeBox');
-                        if (dateBox) {
+                        const dateBox = statsPanel && statsPanel.querySelector('#dateRangeBox');
+                        if (dateBox && dateBox.offsetParent !== null) {
                             calcTop = dateBox.getBoundingClientRect().bottom + 50;
                         } else {
-                            calcTop = rect.top + 150;
+                            calcTop = rect.bottom + 10;
                         }
                     }
 
                     chatModal.style.left = calcLeft + 'px';
                     chatModal.style.top = calcTop + 'px';
 
-                    // CSS fixed 위치 간섭 제거
                     chatModal.style.right = 'auto';
                     chatModal.style.bottom = 'auto';
                 }

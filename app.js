@@ -3598,6 +3598,13 @@ function extractAndApplyFilters(filteredData) {
  * 합계 그래프↔번호순, 번호통계↔당첨순, 출현통계↔출현순.
  */
 function syncBottomChartsToSortState() {
+    if (typeof document !== 'undefined' && document.documentElement.classList.contains('app-layout-center-only')) {
+        ['bottomArea', 'bottomAreaWin', 'bottomAreaNumber'].forEach(function (id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('visible');
+        });
+        return;
+    }
     const cs = AppState.currentSort;
     const sumPanel = document.getElementById('bottomArea');
     const winFreqPanel = document.getElementById('bottomAreaWin');

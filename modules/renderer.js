@@ -66,11 +66,25 @@ if (typeof window !== 'undefined') {
     window.createPlusSign = createPlusSign;
 }
 
+/** 간편 레이아웃(?m=1 등): 하단 차트 DOM이 숨겨져 있어 Chart.js 초기화가 실패할 수 있음 */
+function isAppLayoutCenterOnly() {
+    return typeof document !== 'undefined'
+        && document.documentElement
+        && document.documentElement.classList.contains('app-layout-center-only');
+}
 
 function renderMonthlyAverageChart(currentData) {
     const ctx = document.getElementById('averageSumChart');
     // 전체 범위를 알기 위해 AppState.allLotto645Data가 필수입니다.
     if (!ctx || !AppState.allLotto645Data || AppState.allLotto645Data.length === 0) return;
+
+    if (isAppLayoutCenterOnly()) {
+        if (window.lottoAverageChart) {
+            try { window.lottoAverageChart.destroy(); } catch (e) { /* ignore */ }
+            window.lottoAverageChart = null;
+        }
+        return;
+    }
 
     // 1. 전체 데이터 가공: 최근회차 -> 과거회차 순 (좌측=최근, 우측=과거)
     const fullData = [...AppState.allLotto645Data].sort((a, b) => b.round - a.round);
@@ -338,6 +352,14 @@ function renderWinFrequencyChart(currentData) {
     const ctx = document.getElementById('winFrequencyChart');
     if (!ctx) return;
 
+    if (isAppLayoutCenterOnly()) {
+        if (window.winFreqChart) {
+            try { window.winFreqChart.destroy(); } catch (e) { /* ignore */ }
+            window.winFreqChart = null;
+        }
+        return;
+    }
+
     const displayData = currentData || AppState.currentStatsRounds || AppState.allLotto645Data;
     if (!displayData || displayData.length === 0) return;
 
@@ -465,6 +487,14 @@ function renderWinFrequencyChart(currentData) {
 function renderNumberFrequencyChart(currentData) {
     const ctx = document.getElementById('numberFrequencyChart');
     if (!ctx) return;
+
+    if (isAppLayoutCenterOnly()) {
+        if (window.numberFreqChart) {
+            try { window.numberFreqChart.destroy(); } catch (e) { /* ignore */ }
+            window.numberFreqChart = null;
+        }
+        return;
+    }
 
     const displayData = currentData || AppState.currentStatsRounds || AppState.allLotto645Data;
     if (!displayData || displayData.length === 0) return;
@@ -2249,6 +2279,8 @@ function updateRoundRangeDisplay() {
         `;
     }
 }
+
+function updateResultFilterAvg() {
     var vals = AppState.chartEndRoundValues;
     if (!vals) return;
 

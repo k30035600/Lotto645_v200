@@ -17,15 +17,52 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260506centerOnly">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260506compactInline">
+    <script>
+    (function () {
+        function applyCompactFlag() {
+            try {
+                var q = new URLSearchParams(location.search || '');
+                var layout = (q.get('layout') || '').toLowerCase();
+                var m = (q.get('m') || '').trim().toLowerCase();
+                var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
+                if (!compact) return;
+                document.documentElement.classList.add('app-layout-center-only');
+                /* 오래된 styles.css 캐시에도 간편 레이아웃이 먹히도록 인라인 백업(동일 규칙은 styles.css에도 있음) */
+                if (document.getElementById('app-compact-layout-fallback')) return;
+                var st = document.createElement('style');
+                st.id = 'app-compact-layout-fallback';
+                st.textContent = [
+                    'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-win{display:none!important}',
+                    'html.app-layout-center-only .main-container{flex-wrap:nowrap;width:100%}',
+                    'html.app-layout-center-only .panel-box-game{flex:1 1 100%!important;max-width:100%;min-width:0}',
+                    'html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}',
+                    'html.app-layout-center-only #mainFooter{display:none!important}'
+                ].join('');
+                document.head.appendChild(st);
+            } catch (e) { /* ignore */ }
+        }
+        applyCompactFlag();
+    })();
+    </script>
 </head>
 
 <body>
 <script>
 (function () {
-    var q = new URLSearchParams(location.search);
-    var compact = q.get('layout') === 'center' || q.get('m') === '1';
-    if (compact) document.documentElement.classList.add('app-layout-center-only');
+    var q = new URLSearchParams(location.search || '');
+    var layout = (q.get('layout') || '').toLowerCase();
+    var m = (q.get('m') || '').trim().toLowerCase();
+    var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
+    if (compact) {
+        document.documentElement.classList.add('app-layout-center-only');
+        if (!document.getElementById('app-compact-layout-fallback')) {
+            var st = document.createElement('style');
+            st.id = 'app-compact-layout-fallback';
+            st.textContent = 'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-win{display:none!important}html.app-layout-center-only .main-container{flex-wrap:nowrap;width:100%}html.app-layout-center-only .panel-box-game{flex:1 1 100%!important;max-width:100%;min-width:0}html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}html.app-layout-center-only #mainFooter{display:none!important}';
+            document.head.appendChild(st);
+        }
+    }
     document.addEventListener('DOMContentLoaded', function () {
         var a = document.getElementById('navLayoutCompactLink');
         var b = document.getElementById('navLayoutFullLink');
@@ -54,8 +91,8 @@
             </div>
             <nav class="header-nav" aria-label="주 메뉴">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <a href="index.html?layout=center" id="navLayoutCompactLink" class="header-action-btn" title="스마트폰·태블릿: 가운데 패널만 표시">간편</a>
-                    <a href="index.html" id="navLayoutFullLink" class="header-action-btn" title="좌·우 통계·당첨 패널 포함 전체 화면" style="display:none;">전체</a>
+                    <a href="?layout=center" id="navLayoutCompactLink" class="header-action-btn" title="스마트폰·태블릿: 가운데 패널만 표시">간편</a>
+                    <a href="/" id="navLayoutFullLink" class="header-action-btn" title="좌·우 통계·당첨 패널 포함 전체 화면" style="display:none;">전체</a>
                     <button id="helpBtn" class="header-action-btn" onclick="showHelpModal()">도움말</button>
                     <button id="exitBtn" class="header-action-btn" onclick="shutdownServer()">종료</button>
                     <button id="fullscreenBtn" class="header-action-btn" type="button" title="전체화면">전체화면</button>
