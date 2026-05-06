@@ -1,11 +1,5 @@
-# Railway/Nixpacks — package.json 때문에 Node만 잡히는 것을 막고 Python으로 고정
+# Railway/Nixpacks — Node 대신 Python만 사용 (루트 package.json 존재)
 providers = ["python"]
-
-[phases.install]
-cmds = ["python -m pip install --upgrade pip", "python -m pip install -r requirements.txt"]
-
-[phases.build]
-cmds = ["sh -c 'if [ -d .source ]; then cp -a .source .source_seed; else mkdir -p .source_seed; fi'"]
 
 [start]
 cmd = "python deploy/railway_start.py"
