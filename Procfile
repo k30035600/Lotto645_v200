@@ -1,1 +1,1 @@
-web: gunicorn server:app --bind 0.0.0.0:$PORT --timeout 120 --graceful-timeout 30
+web: python scripts/railway_start.py
