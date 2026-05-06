@@ -867,7 +867,16 @@ def api_lotto645_meta():
         pass
     _ensure_lotto645_json_matches_xlsx()
     n = _get_lotto645_data_row_count()
-    out = {'dataRows': n} if n is not None else {}
+    if n is not None:
+        out = {'dataRows': n}
+    else:
+        xlsx_p = BASE_DIR / '.source' / 'Lotto645.xlsx'
+        seed_p = BASE_DIR / 'deploy' / 'source_seed' / 'Lotto645.xlsx'
+        out = {
+            'dataRows': None,
+            'xlsxPresent': xlsx_p.is_file(),
+            'bundledSeedPresent': seed_p.is_file(),
+        }
     headers = {**CORS_HEADERS, 'Cache-Control': 'no-store, no-cache, max-age=0', 'Pragma': 'no-cache'}
     return jsonify(out), 200, headers
 
