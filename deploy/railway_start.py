@@ -1,27 +1,47 @@
 #!/usr/bin/env python3
 """
-Railway: /app/.source 볼륨이 비어 있으면 빌드 단계에서 둔 .source_seed 를 복사한 뒤 gunicorn 기동.
-(볼륨이 이미지의 .source 를 가리므로 런타임에 시드 경로는 반드시 마운트 밖이어야 함.)
+Railway: /app/.source 볼륨이 비었으면 이미지에 포함된 시드를 복사한 뒤 gunicorn 기동.
+
+시드 경로(우선순위):
+  1) deploy/source_seed — 저장소에 포함(점(.) 없음, 빌드에서 누락되기 어려움)
+  2) .source_seed — Nixpacks 빌드 단계에서 .source 복사 산출물
+
+.source 갱신 후에는 deploy/sync_seed_from_dot_source.py 를 실행해 source_seed를 맞춘 뒤 커밋하세요.
 """
 import os
 import shutil
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SEED = ROOT / ".source_seed"
 TARGET = ROOT / ".source"
 MARKER = TARGET / "Lotto645.xlsx"
+
+
+def _resolve_seed_dir():
+    candidates = [
+        ROOT / "deploy" / "source_seed",
+        ROOT / ".source_seed",
+    ]
+    for d in candidates:
+        if (d / "Lotto645.xlsx").is_file():
+            return d
+    return None
 
 
 def _seed_if_needed():
     if MARKER.is_file():
         return
-    seed_xlsx = SEED / "Lotto645.xlsx"
-    if not seed_xlsx.is_file():
+    seed = _resolve_seed_dir()
+    if seed is None:
+        print(
+            "[railway_start] No seed: add deploy/source_seed (run deploy/sync_seed_from_dot_source.py) "
+            "or fix Nixpacks .source_seed build.",
+            flush=True,
+        )
         return
-    print("[railway_start] Seeding .source from .source_seed (empty or missing Lotto645.xlsx)", flush=True)
+    print(f"[railway_start] Seeding .source from {seed.relative_to(ROOT)}", flush=True)
     TARGET.mkdir(parents=True, exist_ok=True)
-    for item in SEED.iterdir():
+    for item in seed.iterdir():
         if item.name.startswith("."):
             continue
         dest = TARGET / item.name
