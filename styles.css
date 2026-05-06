@@ -185,6 +185,9 @@
 }
 
 html {
+    /* 모바일에서만 글자·레이아웃이 디바이스 배율과 어긋나 보일 때 완충(WebKit 재조정 최소화) */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     scrollbar-width: thin;
     scrollbar-color: var(--color-table-header) transparent;
 }
@@ -254,6 +257,7 @@ body {
     margin: 0;
     padding: 0;
     height: 100vh;
+    height: 100dvh;
     /* FHD 높이 고정 */
     width: 100%;
     display: flex;
@@ -266,6 +270,15 @@ body {
     color: var(--color-text-primary);
     overflow: hidden;
     /* 페이지 전체 스크롤 방지 */
+}
+
+/* 좁은 뷰포트: 입력란 폰트가 과도하게 작으면 iOS Safari가 페이지를 확대해 '배율이 깨진' 것처럼 보임 */
+@media (max-width: 640px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="image"]),
+    select,
+    textarea {
+        font-size: max(16px, 1em);
+    }
 }
 
 .page-header {
