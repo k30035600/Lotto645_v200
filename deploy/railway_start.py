@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""gunicorn 기동 전 시드. server.py 임포트 시에도 동일 모듈이 호출됨."""
+"""gunicorn 기동 전 시드. 실패해도 기동은 계속(서버 import 시 한 번 더 시도)."""
 import os
 import sys
 from pathlib import Path
@@ -12,15 +12,23 @@ from utils.railway_source_seed import ensure_dot_source_seeded
 
 
 def main():
-    ensure_dot_source_seeded(ROOT)
+    try:
+        ensure_dot_source_seeded(ROOT)
+    except Exception as exc:
+        print(f"[railway_start] seed skipped: {exc}", flush=True)
+
     port = os.environ.get("PORT", "5000")
     os.execvp(
-        "gunicorn",
+        sys.executable,
         [
+            sys.executable,
+            "-m",
             "gunicorn",
             "server:app",
             "--bind",
             f"0.0.0.0:{port}",
+            "--workers",
+            "1",
             "--timeout",
             "120",
             "--graceful-timeout",
