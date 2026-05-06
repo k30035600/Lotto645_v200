@@ -1,3 +1,4 @@
 # Railway/Nixpacks 빌드 설정 (Flask + Gunicorn)
+# [start] 가 있으면 일부 환경에서 Procfile 대신 이 명령이 사용될 수 있음 — timeout 동일 유지
 [start]
-cmd = "gunicorn server:app --bind 0.0.0.0:$PORT"
+cmd = "gunicorn server:app --bind 0.0.0.0:$PORT --timeout 120 --graceful-timeout 30"
