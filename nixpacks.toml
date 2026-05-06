@@ -1,4 +1,5 @@
 # Railway/Nixpacks 빌드 설정 (Flask + Gunicorn)
+# 서비스 Settings의 Root Directory는 비워 두세요(모노레포가 아니면). 오류 예: .../k30035600/Lotto645_v200 does not exist
 # [start] 가 있으면 일부 환경에서 Procfile 대신 이 명령이 사용될 수 있음 — timeout 동일 유지
 [start]
 cmd = "gunicorn server:app --bind 0.0.0.0:$PORT --timeout 120 --graceful-timeout 30"
