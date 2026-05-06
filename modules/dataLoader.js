@@ -829,6 +829,33 @@ async function loadAndDisplayResults() {
     }
 }
 
+/** 같은 오리진이면 상대 경로만 쓰면 안전(fetch URL 오타·혼합 콘텐츠 회피) */
+function resolveApiPath(path) {
+    const p = path.charAt(0) === '/' ? path : '/' + path;
+    if (typeof getApiBaseUrl !== 'function') return p;
+    const base = String(getApiBaseUrl()).replace(/\/$/, '');
+    const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+        ? window.location.origin.replace(/\/$/, '') : '';
+    if (!base || !origin || base === origin) return p;
+    return base + p;
+}
+
+async function fetchWithRetry(url, init, retries) {
+    const n = retries == null ? 2 : retries;
+    let lastErr;
+    for (let i = 0; i <= n; i++) {
+        try {
+            return await fetch(url, init);
+        } catch (e) {
+            lastErr = e;
+            if (i < n) {
+                await new Promise(function (r) { setTimeout(r, 1200 * (i + 1)); });
+            }
+        }
+    }
+    throw lastErr;
+}
+
 async function fetchLatestWinningNumbers() {
     const navBtn = document.getElementById('navFetchLatest');
     if (navBtn) {
@@ -837,12 +864,17 @@ async function fetchLatestWinningNumbers() {
     }
 
     try {
-        const base = getApiBaseUrl();
-
-        const latestRes = await fetch(base + '/api/lotto-latest?force=1', { cache: 'no-store' });
-        const latestData = await latestRes.json().catch(() => ({}));
+        const reqInit = { cache: 'no-store' };
+        // 1) force=0: 서버 판단으로 로컬 JSON만으로도 빠르게 응답(Railway→동행복권 매번 호출 회피)
+        let latestRes = await fetchWithRetry(resolveApiPath('/api/lotto-latest?force=0'), reqInit, 2);
+        let latestData = await latestRes.json().catch(function () { return {}; });
         if (latestData.returnValue !== 'success' || latestData.drwNo == null) {
-            alert('동행복권 최신 회차 정보를 가져오지 못했습니다.');
+            if (navBtn) navBtn.textContent = '강제 조회중...';
+            latestRes = await fetchWithRetry(resolveApiPath('/api/lotto-latest?force=1'), reqInit, 2);
+            latestData = await latestRes.json().catch(function () { return {}; });
+        }
+        if (latestData.returnValue !== 'success' || latestData.drwNo == null) {
+            alert('동행복권 최신 회차 정보를 가져오지 못했습니다. (클라우드 IP 차단 시 USE_PLAYWRIGHT·프록시 등 서버 설정을 확인하세요.)');
             return;
         }
 
@@ -860,10 +892,14 @@ async function fetchLatestWinningNumbers() {
         if (missingCount <= 100) {
             const missingRounds = [];
             for (let r = localEndRound + 1; r <= apiLatestRound; r++) missingRounds.push(r);
-            await fetch(base + '/api/fetch-missing-rounds?rounds=' + missingRounds.join(','), { cache: 'no-store' });
+            await fetchWithRetry(
+                resolveApiPath('/api/fetch-missing-rounds?rounds=' + missingRounds.join(',')),
+                reqInit,
+                1
+            );
         }
 
-        const syncRes = await fetch(base + '/api/sync-lotto645', { method: 'POST', cache: 'no-store' });
+        const syncRes = await fetchWithRetry(resolveApiPath('/api/sync-lotto645'), { method: 'POST', cache: 'no-store' }, 1);
         const syncData = await syncRes.json().catch(() => ({}));
 
         if (syncData.returnValue === 'fail' && syncData.error) {
@@ -945,7 +981,11 @@ async function fetchLatestWinningNumbers() {
         }
     } catch (e) {
         console.error('[최근당첨번호] 오류:', e);
-        alert('최근당첨번호 조회 중 오류가 발생했습니다: ' + (e.message || String(e)));
+        const msg = (e && e.message) ? e.message : String(e);
+        const hint = /failed to fetch|networkerror|load failed/i.test(msg)
+            ? '\n\n네트워크 또는 서버 응답이 없습니다. 잠시 후 다시 시도하거나 Railway 로그·재배포를 확인하세요. 해외 IP 차단이면 .env 프록시 설정이 필요할 수 있습니다.'
+            : '';
+        alert('최근당첨번호 조회 중 오류가 발생했습니다: ' + msg + hint);
     } finally {
         if (navBtn) {
             navBtn.style.pointerEvents = '';
