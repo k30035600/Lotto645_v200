@@ -296,6 +296,48 @@ def _get_lotto645_data_row_count():
         return None
 
 
+def _get_lotto645_xlsx_round_bounds():
+    """
+    Lotto645.xlsx에서 회차 열의 최소·최대값(데이터 행만).
+    JSON이 xlsx와 행 수만 같고 최대 회차가 어긋난 경우(_ensure 누락) 방지용.
+    """
+    try:
+        import openpyxl
+        p = (BASE_DIR / '.source' / 'Lotto645.xlsx').resolve()
+        if not p.is_file():
+            return None, None
+        wb = openpyxl.load_workbook(p, read_only=True)
+        ws = wb.active
+        rows_iter = ws.iter_rows(values_only=True)
+        hdr = next(rows_iter, None)
+        if not hdr:
+            wb.close()
+            return None, None
+        hdr = [str(h).strip() if h is not None else '' for h in hdr]
+        try:
+            idx = hdr.index('회차')
+        except ValueError:
+            wb.close()
+            return None, None
+        round_nums = []
+        for row in rows_iter:
+            if not row or idx >= len(row):
+                continue
+            v = row[idx]
+            if v is None or str(v).strip() == '':
+                continue
+            try:
+                round_nums.append(int(v))
+            except (TypeError, ValueError):
+                continue
+        wb.close()
+        if not round_nums:
+            return None, None
+        return min(round_nums), max(round_nums)
+    except Exception:
+        return None, None
+
+
 def _lotto645_json_stats_extended():
     """
     Lotto645.json 한 번 읽어 건수·회차 범위·연속 구간 대비 누락·중복 행 수.
@@ -362,30 +404,38 @@ def _lotto645_json_row_stats():
 
 def _ensure_lotto645_json_matches_xlsx():
     """
-    Lotto645.json 배열 길이가 Lotto645.xlsx 데이터 행 수와 다르면 XLSX 기준으로 JSON 재생성.
-    (sync/수동 편집 후 변환 누락·배포본 불일치 시 Railway 등에서 메타 1222건 vs JSON 1215건 현상 방지)
+    Lotto645.json을 XLSX와 맞춤: (1) 데이터 행 수 (2) 최소·최대 회차 (3) JSON 내 구간 누락.
+    행 수만 같고 JSON에만 최신 회차가 남아 있는 등 불일치 시에도 XLSX 기준으로 재생성.
     """
     n = _get_lotto645_data_row_count()
     if n is None:
         return
+    x_min, x_max = _get_lotto645_xlsx_round_bounds()
+    jext = _lotto645_json_stats_extended()
     json_path = (BASE_DIR / '.source' / 'Lotto645.json').resolve()
     need_convert = False
     if not json_path.is_file():
         need_convert = True
-    else:
-        try:
-            with open(json_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            if not isinstance(data, list) or len(data) != n:
-                need_convert = True
-        except Exception:
-            need_convert = True
+    elif jext is None:
+        need_convert = True
+    elif jext.get('length') != n:
+        need_convert = True
+    elif x_max is not None and jext.get('maxRound') is not None and int(jext['maxRound']) != int(x_max):
+        need_convert = True
+    elif x_min is not None and jext.get('minRound') is not None and int(jext['minRound']) != int(x_min):
+        need_convert = True
+    elif (jext.get('missingInSpan') or 0) > 0:
+        need_convert = True
+
     if not need_convert:
         return
     try:
         from utils.convert_to_json import convert_xlsx_to_json
         convert_xlsx_to_json()
-        logger.info('[Lotto645] JSON을 XLSX와 맞춤 갱신함 (기대 데이터 행 %s).', n)
+        logger.info(
+            '[Lotto645] JSON을 XLSX와 맞춤 갱신함 (xlsx행 %s, xlsx회차 %s~%s).',
+            n, x_min, x_max,
+        )
     except Exception as e:
         logger.error('[Lotto645] JSON 동기화 실패: %s', e, exc_info=True)
 
