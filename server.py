@@ -296,6 +296,32 @@ def _get_lotto645_data_row_count():
         return None
 
 
+def _lotto645_json_row_stats():
+    """Lotto645.json 건수·최소·최대 회차. 파일 없거나 오류 시 (None, None, None)."""
+    json_path = (BASE_DIR / '.source' / 'Lotto645.json').resolve()
+    if not json_path.is_file():
+        return None, None, None
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        if not isinstance(data, list) or len(data) == 0:
+            return 0, None, None
+        rounds = []
+        for item in data:
+            r = item.get('회차')
+            if r is None:
+                continue
+            try:
+                rounds.append(int(r))
+            except (TypeError, ValueError):
+                continue
+        if not rounds:
+            return len(data), None, None
+        return len(data), min(rounds), max(rounds)
+    except Exception:
+        return None, None, None
+
+
 def _ensure_lotto645_json_matches_xlsx():
     """
     Lotto645.json 배열 길이가 Lotto645.xlsx 데이터 행 수와 다르면 XLSX 기준으로 JSON 재생성.
@@ -367,6 +393,39 @@ def api_health():
     if request.method == 'OPTIONS':
         return '', 204, CORS_OPTIONS_HEADERS
     return jsonify(returnValue='ok', server='Flask (server.py)', startTime=SERVER_START_TIME), 200, CORS_HEADERS
+
+
+@app.route('/api/deploy-info', methods=['GET', 'OPTIONS'])
+def api_deploy_info():
+    """배포·데이터 진단: Railway Git 메타 + 컨테이너 내 Lotto645 xlsx/json 통계."""
+    if request.method == 'OPTIONS':
+        return '', 204, CORS_OPTIONS_HEADERS
+    xlsx_n = _get_lotto645_data_row_count()
+    jlen, jmin, jmax = _lotto645_json_row_stats()
+    commit = os.environ.get('RAILWAY_GIT_COMMIT_SHA') or os.environ.get('RAILWAY_GIT_COMMIT') or ''
+    branch = os.environ.get('RAILWAY_GIT_BRANCH') or ''
+    out = {
+        'returnValue': 'ok',
+        'serverStartTime': SERVER_START_TIME,
+        'lotto645': {
+            'xlsxDataRows': xlsx_n,
+            'jsonLength': jlen,
+            'jsonMinRound': jmin,
+            'jsonMaxRound': jmax,
+            'pathsDiffer': (
+                xlsx_n is not None and jlen is not None and xlsx_n != jlen
+            ),
+        },
+        'railway': {
+            'gitCommitSha': commit[:40] if commit else None,
+            'gitBranch': branch or None,
+            'environment': os.environ.get('RAILWAY_ENVIRONMENT'),
+            'serviceId': os.environ.get('RAILWAY_SERVICE_ID'),
+            'projectId': os.environ.get('RAILWAY_PROJECT_ID'),
+        },
+    }
+    headers = {**CORS_HEADERS, 'Cache-Control': 'no-store, no-cache, max-age=0', 'Pragma': 'no-cache'}
+    return jsonify(out), 200, headers
 
 
 @app.route('/api/fetch-missing-rounds', methods=['GET', 'OPTIONS'])
