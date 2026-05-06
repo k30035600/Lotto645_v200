@@ -76,10 +76,11 @@ function clearOldCache() {
  * @param {string} url - JSON 파일 URL
  * @returns {Promise<Array>} 로드된 데이터
  */
-async function loadJSON(url) {
+async function loadJSON(url, fetchInit) {
     try {
         const timestamp = Date.now();
-        const response = await fetch(`${url}?t=${timestamp}`);
+        const sep = url.indexOf('?') >= 0 ? '&' : '?';
+        const response = await fetch(`${url}${sep}t=${timestamp}`, fetchInit || {});
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -256,10 +257,11 @@ async function loadLotto645Data(basePath = '') {
         return cached.sort((a, b) => b.round - a.round);
     }
 
-    // 2. JSON 로드 시도
+    // 2. JSON 로드 시도 (CDN/브라우저 캐시 회피: 항상 no-store)
+    const noStore = { cache: 'no-store' };
     try {
         const jsonUrl = `${basePath}.source/Lotto645.json`;
-        const data = await loadJSON(jsonUrl);
+        const data = await loadJSON(jsonUrl, noStore);
 
         if (data.length > 0) {
             const normalized = normalizeLottoData(data);
@@ -275,7 +277,7 @@ async function loadLotto645Data(basePath = '') {
     // 3. XLSX 로드 (fallback)
     try {
         const xlsxUrl = `${basePath}.source/Lotto645.xlsx`;
-        const data = await loadXLSX(xlsxUrl);
+        const data = await loadXLSX(xlsxUrl, noStore);
 
         if (data.length > 0) {
             const normalized = normalizeLottoData(data);

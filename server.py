@@ -296,6 +296,36 @@ def _get_lotto645_data_row_count():
         return None
 
 
+def _ensure_lotto645_json_matches_xlsx():
+    """
+    Lotto645.json 배열 길이가 Lotto645.xlsx 데이터 행 수와 다르면 XLSX 기준으로 JSON 재생성.
+    (sync/수동 편집 후 변환 누락·배포본 불일치 시 Railway 등에서 메타 1222건 vs JSON 1215건 현상 방지)
+    """
+    n = _get_lotto645_data_row_count()
+    if n is None:
+        return
+    json_path = (BASE_DIR / '.source' / 'Lotto645.json').resolve()
+    need_convert = False
+    if not json_path.is_file():
+        need_convert = True
+    else:
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            if not isinstance(data, list) or len(data) != n:
+                need_convert = True
+        except Exception:
+            need_convert = True
+    if not need_convert:
+        return
+    try:
+        from utils.convert_to_json import convert_xlsx_to_json
+        convert_xlsx_to_json()
+        logger.info('[Lotto645] JSON을 XLSX와 맞춤 갱신함 (기대 데이터 행 %s).', n)
+    except Exception as e:
+        logger.error('[Lotto645] JSON 동기화 실패: %s', e, exc_info=True)
+
+
 def _fetch_rounds_draw_info(round_list):
     """
     누락 회차 목록을 독립형 API(get_lotto_round.get_lotto_number)로 조회해 추첨정보만 반환.
@@ -661,6 +691,7 @@ def api_lotto645_meta():
     """Lotto645.xlsx 현재 데이터 행 수 반환. 클라이언트가 캐시 여부 검증용으로 사용."""
     if request.method == 'OPTIONS':
         return '', 204, CORS_OPTIONS_HEADERS
+    _ensure_lotto645_json_matches_xlsx()
     n = _get_lotto645_data_row_count()
     out = {'dataRows': n} if n is not None else {}
     headers = {**CORS_HEADERS, 'Cache-Control': 'no-store, no-cache, max-age=0', 'Pragma': 'no-cache'}
@@ -1479,6 +1510,9 @@ def index():
 
 @app.route('/<path:path>', methods=['GET', 'HEAD'])
 def static_file(path):
+    # Railway 등: gunicorn은 __main__ 변환을 실행하지 않음 → 직접 JSON 요청 시에도 xlsx와 동기화
+    if path.replace('\\', '/').lower().endswith('lotto645.json'):
+        _ensure_lotto645_json_matches_xlsx()
     full = (BASE_DIR / path).resolve()
     base_resolved = BASE_DIR.resolve()
     if not str(full).startswith(str(base_resolved)) or not full.is_file():
@@ -1491,6 +1525,10 @@ def static_file(path):
     # Lotto645.xlsx 등 데이터 파일은 매번 서버에서 새로 읽도록 캐시 비활성화 (브라우저/프록시 캐시 방지)
     path_lower = path.replace('\\', '/').lower()
     if path_lower.endswith('.xlsx') or 'lotto645.xlsx' in path_lower or 'lotto023.xlsx' in path_lower:
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+    if path_lower.endswith('lotto645.json'):
         resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         resp.headers['Pragma'] = 'no-cache'
         resp.headers['Expires'] = '0'

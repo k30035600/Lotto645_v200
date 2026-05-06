@@ -796,15 +796,22 @@ async function initializeApp() {
             if (keysToRemove.length > 0) { /* Lotto645 관련 localStorage 키 제거 */ }
         } catch (e) { /* localStorage 비활성화 등 무시 */ }
 
-        const lotto645Data = await loadFunc();
-        AppState.previousDataCount = lotto645Data ? lotto645Data.length : 0;
+        /** 먼저 메타 호출 → 서버가 Lotto645.json을 xlsx와 동기화한 뒤 로드(Railway 등 JSON만 늦게 갱신된 경우 방지) */
+        let meta = {};
         try {
             const metaRes = await fetch(getApiBaseUrl() + '/api/lotto645-meta', { cache: 'no-store' });
-            const meta = await metaRes.json().catch(() => ({}));
-            if (meta.dataRows != null && meta.dataRows !== lotto645Data.length) {
-                alert('회차별 당첨번호가 서버 데이터와 다릅니다.\n서버: ' + meta.dataRows + '회차, 수신: ' + lotto645Data.length + '건\n캐시를 비우고 강력 새로고침(Ctrl+Shift+R) 해 주세요.');
-            }
+            meta = await metaRes.json().catch(() => ({}));
         } catch (e) { /* 메타 조회 실패 시 무시 */ }
+
+        let lotto645Data = await loadFunc();
+        if (meta.dataRows != null && meta.dataRows !== lotto645Data.length) {
+            try { localStorage.removeItem('LOTTO645_DATA_CACHE_V2'); } catch (e2) { /* ignore */ }
+            lotto645Data = await loadFunc();
+        }
+        AppState.previousDataCount = lotto645Data ? lotto645Data.length : 0;
+        if (meta.dataRows != null && meta.dataRows !== lotto645Data.length) {
+            alert('회차별 당첨번호가 서버 데이터와 다릅니다.\n서버(xlsx 기준): ' + meta.dataRows + '건, 수신: ' + lotto645Data.length + '건\n캐시를 비우고 강력 새로고침(Ctrl+Shift+R) 해 주세요. 문제가 계속되면 서버에서 Lotto645.xlsx와 .json을 확인하세요.');
+        }
         if (lotto645Data.length === 0) {
             const errMsg = 'XLSX 파일을 불러올 수 없습니다. 서버를 실행한 뒤 접속해 주세요. (start-server.bat 또는 python server.py)';
             setLoadError(errMsg);
