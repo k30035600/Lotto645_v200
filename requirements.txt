@@ -3,6 +3,4 @@ python-dotenv
 openpyxl
 google-genai
 requests
-playwright
-playwright-stealth
 gunicorn
