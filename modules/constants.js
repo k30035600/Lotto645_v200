@@ -15,6 +15,8 @@ const LOTTO_CONSTANTS = {
     // 세트 구성
     SET_SIZE: 6,
     DEFAULT_SET_COUNT: 5,
+    /** 게임1~5 슬롯 수(합 밴드·분산 필터·워커 풀 수집에 공통). app.js SUM_BAND_SLOT_COUNT 와 동일 값. */
+    SUM_BAND_SLOT_COUNT: 5,
 
     // 합계 범위
     MIN_SUM: 21,   // 1+2+3+4+5+6
@@ -188,7 +190,74 @@ const DEV_MODE = {
     SHOW_PERFORMANCE: false
 };
 
+/**
+ * 신뢰도 100% 조합 시도 정책 상수
+ *  - SYNC: app.js의 generateGame(auto/lucky) 단일 슬롯 시도 횟수
+ *  - ASYNC: harmonyPool.js의 풀 보충 슬롯 시도 횟수(협력적/비동기)
+ *  - YIELD_EVERY: ASYNC 시도 N회마다 setTimeout(0) 양보
+ */
+const HARMONY_POOL_CONSTANTS = {
+    TRUST100_TRIES_SYNC: 100,
+    TRUST100_TRIES_ASYNC: 200,
+    TRUST100_YIELD_EVERY: 24,
+    /** 정렬 보조용 평균합(`scorePendingLuckyPerfectKey`의 sumDist 기준값) */
+    REF_AVG_SUM: 138
+};
+
 const DEFAULT_SET_COUNT = LOTTO_CONSTANTS.DEFAULT_SET_COUNT;
+
+/** ShareHarmony · MyRisk 팔레트 (동행볼 제외, UI 일관용) — Common 기준 */
+const SHAREHARMONY_PALETTE = {
+    /* Brand / Navigation */
+    primary: '#263238',
+    primaryNavy: '#263238',
+    primaryDark: '#1B2631',
+    accent: '#5A6E7A',
+    accentDark: '#37474F',
+    accentLight: '#B0BEC5',
+    /* 입금 / 출금 */
+    income: '#1565C0',
+    expense: '#C62828',
+    incomeLight: '#90CAF5',
+    expenseLight: '#EF9A9A',
+    /* 텍스트 / 배경 */
+    textPrimary: '#1A1A1A',
+    textSecondary: '#334155',
+    textMuted: '#5A6872',
+    textDisabled: '#B5A5A8',
+    pageBg: '#F0F2F5',
+    white: '#FFFFFF',
+    black: '#000000',
+    bgLight: '#F0F2F5',
+    bgLighter: '#E2E6EA',
+    /* 테이블 기본값 */
+    tableHeader: '#455A64',
+    tableStripe: '#F7F8FA',
+    tableHover: '#D8EAFE',
+    tableSumRow: '#E2E8F0',
+    /* 바디 / 상태 */
+    border: '#D5DAE0',
+    borderLight: '#E2E6EA',
+    warning: '#E67E22',
+    golden: '#F39C12',
+    goldenLight: '#FDEBD0',
+    goldenDark: '#D4860B',
+    goldenTicket: '#D4AF37',
+    error: '#C62828',
+    /* 기본 3색 */
+    myBankBlue: '#1565C0',
+    myBankDark: '#0A3D91',
+    myCardPurple: '#6A1B9A',
+    myCardDark: '#38006B',
+    myCashOrange: '#E65100',
+    /* 호환 별칭 */
+    greenAccent: '#5A6E7A',
+    greenBtn: '#1565C0',
+    greenBtnDark: '#0A3D91',
+    aiOrange: '#E65100',
+    aiOrangeBorder: '#BF360C',
+    selectionBorder: '#1565C0'
+};
 
 // 브라우저 전역 객체에 할당 (일반 스크립트 호환)
 if (typeof window !== 'undefined') {
@@ -204,6 +273,8 @@ if (typeof window !== 'undefined') {
     window.SUCCESS_MESSAGES = SUCCESS_MESSAGES;
     window.DEV_MODE = DEV_MODE;
     window.DEFAULT_SET_COUNT = DEFAULT_SET_COUNT;
+    window.SHAREHARMONY_PALETTE = SHAREHARMONY_PALETTE;
+    window.HARMONY_POOL_CONSTANTS = HARMONY_POOL_CONSTANTS;
 }
 
 // 전역으로 export (CommonJS 호환)
@@ -220,6 +291,8 @@ if (typeof module !== 'undefined' && module.exports) {
         ERROR_MESSAGES,
         SUCCESS_MESSAGES,
         DEV_MODE,
-        DEFAULT_SET_COUNT
+        DEFAULT_SET_COUNT,
+        SHAREHARMONY_PALETTE,
+        HARMONY_POOL_CONSTANTS
     };
 }

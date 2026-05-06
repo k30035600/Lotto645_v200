@@ -7,8 +7,8 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <!-- Flask(server.py) 주소. Live Server(5500 등)로 index만 열 때는 여기가 실제 API 서버와 같아야 Lotto023 저장이 됩니다. -->
-    <meta name="lotto-api-base" content="http://localhost:8000">
+    <!-- 비우면 현재 페이지 origin(Railway 등 배포 URL)을 API로 사용. Live Server로 HTML만 열 때 API가 다른 포트면 http://localhost:8000 처럼 명시. -->
+    <meta name="lotto-api-base" content="">
     <meta name="description"
         content="ShareHarmony - 나눔의 기쁨과 어울림의 행운을 드리는 똑똑한 AI 로또 번호 생성기. 데이터 기반의 분석으로 당신의 행운을 극대화하세요.">
     <title>ShareHarmony Lotto | 나눔과 어울림의 행운 번호</title>
@@ -17,10 +17,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260321scrollSort">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260506centerOnly">
 </head>
 
 <body>
+<script>
+(function () {
+    var q = new URLSearchParams(location.search);
+    var compact = q.get('layout') === 'center' || q.get('m') === '1';
+    if (compact) document.documentElement.classList.add('app-layout-center-only');
+    document.addEventListener('DOMContentLoaded', function () {
+        var a = document.getElementById('navLayoutCompactLink');
+        var b = document.getElementById('navLayoutFullLink');
+        if (a && b) {
+            if (compact) { a.style.display = 'none'; b.style.display = ''; }
+            else { b.style.display = 'none'; }
+        }
+    });
+})();
+</script>
     <!-- 기본 UI 구조 -->
     <header class="page-header">
         <div class="header-content">
@@ -38,7 +53,9 @@
                 </div>
             </div>
             <nav class="header-nav" aria-label="주 메뉴">
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <a href="index.html?layout=center" id="navLayoutCompactLink" class="header-action-btn" title="스마트폰·태블릿: 가운데 패널만 표시">간편</a>
+                    <a href="index.html" id="navLayoutFullLink" class="header-action-btn" title="좌·우 통계·당첨 패널 포함 전체 화면" style="display:none;">전체</a>
                     <button id="helpBtn" class="header-action-btn" onclick="showHelpModal()">도움말</button>
                     <button id="exitBtn" class="header-action-btn" onclick="shutdownServer()">종료</button>
                     <button id="fullscreenBtn" class="header-action-btn" type="button" title="전체화면">전체화면</button>
@@ -398,14 +415,19 @@
     <script src="modules/utils/cache.js"></script>
     <script src="modules/utils/errorHandler.js"></script>
     <script src="modules/utils/uiHelper.js"></script>
+    <script src="modules/utils/lottoUtils.js"></script>
     <script src="modules/state.js"></script>
     <script src="modules/statistics.js"></script>
     <script src="modules/generator.js"></script>
     <script src="modules/dataLoader.js"></script>
+    <script src="modules/aiChat.js"></script>
     <script src="modules/filters.js"></script>
+    <script src="modules/harmonyPool.js"></script>
+    <script src="modules/renderer.js"></script>
+    <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->
-    <script src="app.js?v=20260321scrollSort"></script>
+    <script src="app.js?v=20260424refactor"></script>
 
 </body>
 

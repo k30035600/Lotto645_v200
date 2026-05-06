@@ -64,6 +64,8 @@ const AppState = {
 
     /** 행운번호 분석 오버레이: 신뢰도 산출용 통계 필터 스냅샷(표시 후 즉시 해제) */
     _luckyStatTrustContext: null,
+    /** 게임 칸 i(0~) 표시 번호가 신뢰도 산출 시 참조할 슬롯(1~5). 워커 풀은 회전 슬롯으로 검증하므로 UI 칸과 다를 수 있음 */
+    _harmonyTrustSlotByGame: null,
 
     /** 저장 목록(Lotto023): 번호저장용 미추첨 회차(스코프·로직에서 갱신) */
     resultListRoundFilter: null,
@@ -101,6 +103,8 @@ const AppState = {
         this.aiRecommendWindowStart = null;
         this.aiRecommendWindowEnd = null;
         this._luckyStatTrustContext = null;
+        this._harmonyTrustCtxBySlot = null;
+        this._harmonyTrustSlotByGame = null;
         this.sumBandPerGame = null;
     },
 

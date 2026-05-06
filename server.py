@@ -21,6 +21,7 @@ except (AttributeError, OSError):
     pass
 
 import json
+import logging
 import time
 import datetime
 
@@ -46,6 +47,10 @@ SERVER_START_TIME = (datetime.datetime.now(datetime.timezone(datetime.timedelta(
 app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
 app.config['JSON_AS_ASCII'] = False
 logger = get_logger(__name__)
+
+# GET마다 1줄씩 찍히는 Werkzeug 액세스 로그는 소음이 큼. SERVER_ACCESS_LOG=1 일 때만 INFO 유지
+if os.environ.get('SERVER_ACCESS_LOG', '').lower() not in ('1', 'true', 'yes'):
+    logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
 # Lotto023.xlsx 표준 컬럼 (조회시작/조회종료 없음, 게임선택 다음에 선택합계)
 LOTTO023_CANONICAL_HEADERS = (
@@ -235,7 +240,7 @@ def fetch_latest_lotto(force=False):
             need_api_call = True
 
     if not need_api_call and local_parsed:
-        logger.info('[동행복권] 로컬 데이터가 최신입니다. API 호출 생략.')
+        logger.debug('[동행복권] 로컬 데이터가 최신입니다. API 호출 생략.')
         return _to_latest_response(local_parsed), None
 
     # 3. API 호출 (로컬 데이터가 없거나, 갱신이 필요한 경우)
@@ -243,7 +248,7 @@ def fetch_latest_lotto(force=False):
         from utils.get_lotto_round import get_latest_lotto
         parsed = get_latest_lotto()
         if parsed:
-            logger.info('[동행복권] API 조회 성공: %s회 (%s)', parsed.get('drwNo'), parsed.get('drwNoDate'))
+            logger.debug('[동행복권] API 조회 성공: %s회 (%s)', parsed.get('drwNo'), parsed.get('drwNoDate'))
             # 로컬 파일보다 더 최신이면 자동 저장 로직 실행
             if local_parsed:
                  api_drw = parsed.get('drwNo')
@@ -1496,7 +1501,7 @@ if __name__ == '__main__':
     # 서버 시작 시 Lotto645 JSON 갱신
     try:
         from utils.convert_to_json import convert_xlsx_to_json
-        logger.info('[초기화] Lotto645 XLSX -> JSON 변환 시작...')
+        logger.debug('[초기화] Lotto645 XLSX -> JSON 변환 시작...')
         convert_xlsx_to_json()
     except Exception as e:
         logger.error('[초기화] Lotto645 JSON 변환 실패: %s', e)

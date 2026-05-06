@@ -412,6 +412,14 @@ body {
     background: rgba(255, 255, 255, 0.25);
 }
 
+a.header-action-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
 .header-nav {
     display: flex;
     gap: 12px;
@@ -605,6 +613,46 @@ body {
     .panel-box-stats { order: 3; }
 }
 
+/*
+ * 간편 레이아웃 (?layout=center | ?m=1 | center.html)
+ * 좌·우 패널·하단 차트·푸터는 숨기고 DOM은 유지 → init 스크립트 호환
+ */
+html.app-layout-center-only .panel-box-stats,
+html.app-layout-center-only .panel-box-win {
+    display: none !important;
+}
+
+html.app-layout-center-only .main-container {
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+html.app-layout-center-only .panel-box-game {
+    flex: 1 1 100% !important;
+    max-width: 100%;
+    min-width: 0;
+}
+
+html.app-layout-center-only #bottomArea,
+html.app-layout-center-only #bottomAreaWin,
+html.app-layout-center-only #bottomAreaNumber {
+    display: none !important;
+}
+
+html.app-layout-center-only #mainFooter {
+    display: none !important;
+}
+
+html.app-layout-center-only .page-body {
+    flex: 1;
+    min-height: 0;
+}
+
+html.app-layout-center-only .game-panel .panel-inner > * {
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+
 .panel-box-stats,
 .panel-box-game,
 .panel-box-win {
@@ -752,6 +800,7 @@ body {
     min-height: 0;
     max-height: none;
     scrollbar-gutter: stable;
+    box-sizing: border-box;
 }
 
 .load-error {
@@ -773,8 +822,12 @@ body {
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0 4px;
-    width: 100%;
+    /* 좌측 #statsList 와 동일: 패널 가장자리~스크롤바 거리·gutter 통일 */
+    margin: 0 6px;
+    width: auto;
+    align-self: stretch;
+    max-width: 100%;
+    padding: 0 6px;
     box-sizing: border-box;
     scrollbar-gutter: stable;
 }
@@ -1676,19 +1729,22 @@ input.result-filter-text {
 }
 
 /* ─── 선택공 + 게임공 좌우 컨테이너 ─── */
+/* 좌(1~45 그리드) : 우(게임공+합계+%칩) = 5 : 7
+   - 1:1은 우측에 6공+합계가 다 들어가지 못해 합계가 잘림(panel-inner overflow-x:hidden)
+   - 우측에 폭을 더 줘 항상 합계까지 보이도록 */
 #gridGameRow {
     display: flex;
     align-items: stretch;
-    gap: 0;
+    gap: 8px;
     min-height: 200px;
 }
 
 #gridGameRow > #numberGridSection {
-    flex: 4;
+    flex: 5 1 0%;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    padding: 12px 10px !important;
+    padding: 8px 8px !important;
     border: none !important;
     border-radius: 0;
     box-shadow: none !important;
@@ -1708,13 +1764,13 @@ input.result-filter-text {
 }
 
 #gridGameRow > #gameBox {
-    flex: 6;
+    flex: 7 1 0%;
     min-width: 0;
     border: none !important;
     border-radius: 0;
     box-shadow: none !important;
-    /* 게임·저장 가독성: 합계가 잘리지 않도록 우측만 살짝 */
-    padding: 6px 10px 6px 0 !important;
+    /* 게임·저장 가독성: 선택공·합계가 우측 끝에서 잘리지 않도록 */
+    padding: 8px 6px 8px 4px !important;
     background: transparent;
     box-sizing: border-box;
 }
@@ -1731,7 +1787,7 @@ input.result-filter-text {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 0 8px;
+    padding: 0 4px 0 8px;
     box-sizing: border-box;
     flex: 1;
     min-height: 0;
@@ -1745,6 +1801,8 @@ input.result-filter-text {
     flex-shrink: 0;
 }
 
+/* (deprecated) G1~G5 별도 라벨은 .game-mode-btn::before 로 흡수했습니다.
+   기존에 라벨이 남아있는 경로(저장/복원 등)를 위해 스타일은 유지. */
 .game-set-row .game-label {
     font-size: 0.75rem;
     font-weight: 700;
@@ -1754,19 +1812,58 @@ input.result-filter-text {
 }
 
 .game-set-row .game-mode-btn {
-    width: 44px;
-    font-size: 0.7rem;
-    padding: 2px 0;
+    /* G1~G5 라벨이 차지하던 공간만큼 행이 좌측으로 당겨지도록 모드 버튼은 가급적 작게 유지.
+       라벨은 ::before로 작은 글씨(super-script 느낌)로 흡수해 폭 증가 최소화. */
+    width: 52px;
+    font-size: 0.68rem;
+    padding: 2px 2px;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px;
+    box-sizing: border-box;
 }
 
-/* 6공+합계: 한 덩어리로만 우측 배치(행 안에서 벌어지지 않음). 남는 폭은 확률칩~이 덩어리 사이에만 생김 */
+.game-set-row .game-mode-btn::before {
+    content: attr(data-game-label);
+    font-weight: 700;
+    color: var(--color-text-muted);
+    font-size: 0.55rem;
+    line-height: 1;
+    flex-shrink: 0;
+    letter-spacing: -0.02em;
+}
+
+.game-set-row .game-mode-btn:not([data-game-label])::before {
+    content: none;
+}
+
+/* fallback 단계별 시각 표시: 일반(녹/원색) → 회색 점선/물음표
+   - filtered: 옅은 노랑, 점선 테두리
+   - skipOpt:  옅은 주황
+   - random:   옅은 회색 + 점선  */
+.game-set-row .game-mode-btn[data-fallback="filtered"] {
+    background: rgba(243, 156, 18, 0.12) !important;
+    border-style: dashed !important;
+}
+.game-set-row .game-mode-btn[data-fallback="skipOpt"] {
+    background: rgba(230, 81, 0, 0.18) !important;
+    border-style: dashed !important;
+}
+.game-set-row .game-mode-btn[data-fallback="random"] {
+    background: rgba(120, 120, 120, 0.18) !important;
+    border-style: dashed !important;
+    color: var(--color-text-muted) !important;
+}
+
+/* 6공+합계: 확률칩 바로 옆에 두어 우측 끝 밀림·잘림 방지. 사이 gap 최소화 */
 .game-row-tail {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     flex: 0 0 auto;
-    margin-left: auto;
+    margin-left: 4px;
     margin-right: 0;
     box-sizing: border-box;
 }
@@ -1784,10 +1881,19 @@ input.result-filter-text {
     box-sizing: border-box;
 }
 
+/* 게임공 영역: 6공이 22px×6 + gap 2px×5 = 142px(8.875rem)에 정확히 맞도록.
+   space-between로 양끝 정렬되지 않게 flex-start로 고정 → 6번째 공이 잘리지 않음 */
+#gameBox .game-balls-wrap {
+    width: 8.875rem;
+    max-width: 8.875rem;
+    gap: 2px;
+    justify-content: flex-start;
+}
+
 .game-right-group {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 0;
     flex-shrink: 0;
     margin-left: 0;
 }
@@ -1800,7 +1906,9 @@ input.result-filter-text {
     font-variant-numeric: tabular-nums;
     min-width: 0;
     width: max-content;
-    padding: 0 2px;
+    padding: 0;
+    margin-left: 6px;
+    letter-spacing: -0.04em;
     flex-shrink: 0;
     white-space: nowrap;
 }
@@ -1815,8 +1923,8 @@ input.result-filter-text {
     border-radius: 8px;
     text-align: center;
     visibility: hidden;
-    width: 36px;
-    min-width: 36px;
+    width: 30px;
+    min-width: 30px;
     flex-shrink: 0;
     box-sizing: border-box;
 }
@@ -2251,6 +2359,7 @@ input[type=number] {
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-gutter: stable;
 }
 
 /* 저장공 게임 행: 당첨공 목록(.round-number-line)과 동일한 세로 밀도(22px 공 기준 24px 줄) */

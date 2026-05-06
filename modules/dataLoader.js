@@ -362,3 +362,816 @@ if (typeof module !== 'undefined' && module.exports) {
         fetchLatestRound,
     };
 }
+
+
+async function loadAndDisplayResults() {
+    const resultContainer = document.getElementById('resultContainer');
+    if (!resultContainer) return;
+
+    try {
+        const lotto023Data = await loadLotto023Data();
+
+        if (!lotto023Data || lotto023Data.length === 0) {
+            resultContainer.innerHTML = '<p style="text-align: center; color: ' + SHAREHARMONY_PALETTE.textSecondary + '; font-size: 0.9rem;">저장된 결과가 없습니다.</p>';
+            const summaryContainer = document.getElementById('resultSummary');
+            if (summaryContainer) {
+                summaryContainer.innerHTML = '';
+                summaryContainer.classList.remove('result-summary-left--pending', 'result-summary-left--filtered-round');
+            }
+            const selectAll = document.getElementById('selectAllDeleteCheckbox');
+            if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; }
+            AppState.resultListRoundFilter = null;
+            AppState.resultListScopeFilter = null;
+            AppState._savedListLotto023 = [];
+            updateSaveBoxState();
+            return;
+        }
+
+        AppState._savedListLotto023 = lotto023Data;
+
+        if (AppState.resultListScopeFilter !== 'pending_only' && AppState.resultListScopeFilter !== 'drawn_only') {
+            AppState.resultListScopeFilter = 'pending_only';
+        }
+
+        let displayData = lotto023Data;
+        if (AppState.resultListScopeFilter === 'pending_only') {
+            displayData = lotto023Data.filter(function (g) { return !isLotto645RoundDrawn(Number(g.round)); });
+            if (displayData.length === 0 && lotto023Data.some(function (g) { return isLotto645RoundDrawn(Number(g.round)); })) {
+                AppState.resultListScopeFilter = 'drawn_only';
+                displayData = lotto023Data.filter(function (g) { return isLotto645RoundDrawn(Number(g.round)); });
+                AppState.resultListRoundFilter = null;
+            } else {
+                const pendingRounds = [...new Set(displayData.map(function (g) { return Number(g.round); }))]
+                    .filter(function (r) { return !Number.isNaN(r) && r > 0 && !isLotto645RoundDrawn(r); });
+                AppState.resultListRoundFilter = pendingRounds.length ? Math.max.apply(null, pendingRounds) : null;
+            }
+        } else if (AppState.resultListScopeFilter === 'drawn_only') {
+            displayData = lotto023Data.filter(function (g) { return isLotto645RoundDrawn(Number(g.round)); });
+            AppState.resultListRoundFilter = null;
+        } else {
+            AppState.resultListRoundFilter = null;
+        }
+
+        if (!displayData || displayData.length === 0) {
+            resultContainer.innerHTML = '<p style="text-align: center; color: ' + SHAREHARMONY_PALETTE.textSecondary + '; font-size: 0.9rem;">저장된 결과가 없습니다.</p>';
+            const summaryContainer = document.getElementById('resultSummary');
+            if (summaryContainer) {
+                summaryContainer.innerHTML = '';
+                summaryContainer.classList.remove('result-summary-left--pending', 'result-summary-left--filtered-round');
+            }
+            const selectAll = document.getElementById('selectAllDeleteCheckbox');
+            if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; }
+            updateSaveBoxState();
+            return;
+        }
+
+        // 회차별로 그룹화
+        const grouped = {};
+        displayData.forEach(item => {
+            const key = `${item.round}`;
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(item);
+        });
+
+        // 최신 순으로 정렬 (회차 내림차순)
+        const sortedGroups = Object.entries(grouped).sort((a, b) => Number(b[0]) - Number(a[0]));
+
+        const scopePending = AppState.resultListScopeFilter === 'pending_only';
+        const scopeDrawn = AppState.resultListScopeFilter === 'drawn_only';
+        const filterRActive = AppState.resultListRoundFilter != null && !Number.isNaN(Number(AppState.resultListRoundFilter));
+        const filteredRoundNum = filterRActive ? Number(AppState.resultListRoundFilter) : null;
+        const selectedRoundIsDrawn = filteredRoundNum != null && isLotto645RoundDrawn(filteredRoundNum);
+
+        const summary = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: 0 };
+        if (filterRActive && selectedRoundIsDrawn) {
+            const gamesForFilterRound = displayData.filter(function (g) { return Number(g.round) === filteredRoundNum; });
+            summary.total = gamesForFilterRound.length;
+            gamesForFilterRound.forEach(function (game) {
+                const winRound = (AppState.allLotto645Data || []).find(function (r) { return Number(r.round) === Number(game.round); });
+                if (winRound && winRound.numbers && game.numbers) {
+                    const res = getLottoRank(game.numbers, winRound.numbers, winRound.bonus);
+                    if (res.rank > 0) summary[res.rank]++;
+                }
+            });
+        } else if (filterRActive && !selectedRoundIsDrawn) {
+            summary.total = displayData.filter(function (g) { return Number(g.round) === filteredRoundNum; }).length;
+        }
+
+        /* 어두운 요약 바: 회차·BoB 탭 + 게임수·결과통계 */
+        let barRound = null;
+        let barGameCount = 0;
+        let barResultStats = '';
+        let barPending = false;
+        let barBubbleClick = false;
+
+        if (displayData.length > 0 && sortedGroups.length > 0) {
+            const drawnKeysInDisplay = Object.keys(grouped).filter(function (k) { return isLotto645RoundDrawn(Number(k)); });
+            if (scopePending) {
+                const pr = [...new Set(displayData.map(function (g) { return Number(g.round); }))]
+                    .filter(function (r) { return !Number.isNaN(r) && r > 0; });
+                barRound = pr.length ? Math.max.apply(null, pr) : Number(sortedGroups[0][0]);
+                const barRoundGamesPending = displayData.filter(function (g) { return Number(g.round) === barRound; });
+                barGameCount = barRoundGamesPending.length;
+                barPending = true;
+                barResultStats = '미추첨';
+                barBubbleClick = false;
+            } else if (scopeDrawn) {
+                const dr = [...new Set(displayData.map(function (g) { return Number(g.round); }))]
+                    .filter(function (r) { return !Number.isNaN(r) && isLotto645RoundDrawn(r); });
+                barRound = dr.length ? Math.max.apply(null, dr) : Number(sortedGroups[0][0]);
+                const barRoundGamesDrawn = displayData.filter(function (g) { return Number(g.round) === barRound; });
+                barGameCount = barRoundGamesDrawn.length;
+                barPending = false;
+                const winBar = (AppState.allLotto645Data || []).find(function (r) { return Number(r.round) === barRound; });
+                barResultStats = formatResultStatsHumanReadable(computeRankSummaryForRoundGames(barRoundGamesDrawn, winBar));
+                barBubbleClick = isLotto645RoundDrawn(barRound);
+            } else if (filterRActive) {
+                barRound = filteredRoundNum;
+                const barRoundGamesFiltered = displayData.filter(function (g) { return Number(g.round) === barRound; });
+                barGameCount = barRoundGamesFiltered.length;
+                barPending = !selectedRoundIsDrawn;
+                if (selectedRoundIsDrawn) {
+                    barResultStats = formatResultStatsHumanReadable(summary);
+                    barBubbleClick = true;
+                } else {
+                    barResultStats = '미추첨';
+                }
+            } else {
+                const fr0 = Number(sortedGroups[0][0]);
+                const fg0 = sortedGroups[0][1];
+                const wr0 = AppState.allLotto645Data && AppState.allLotto645Data.find(function (r) { return r.round === fr0; });
+                barRound = fr0;
+                barGameCount = fg0.length;
+                barPending = !wr0 || !wr0.numbers;
+                if (barPending) {
+                    barResultStats = '미추첨';
+                } else {
+                    barResultStats = formatResultStatsHumanReadable(computeRankSummaryForRoundGames(fg0, wr0));
+                    barBubbleClick = true;
+                }
+            }
+        }
+
+        /* 추첨 완료 회차가 맨 위 그룹이면 헤더 [회차] = 테이블 첫 행 회차(목록과 동일 기준) */
+        let roundForHeaderButton = barRound;
+        if (displayData.length > 0 && sortedGroups.length > 0 && sortedGroups[0][1] && sortedGroups[0][1].length > 0) {
+            const topRound = Number(sortedGroups[0][0]);
+            if (!Number.isNaN(topRound) && topRound > 0 && isLotto645RoundDrawn(topRound)) {
+                roundForHeaderButton = topRound;
+            }
+        }
+
+        const isPendingRoundSummary = barPending;
+        const summaryContainer = document.getElementById('resultSummary');
+        if (summaryContainer) {
+            const showResultSummaryBar = lotto023Data.length > 0 && displayData.length > 0;
+            if (!showResultSummaryBar || barRound == null || Number.isNaN(Number(barRound))) {
+                summaryContainer.innerHTML = '';
+                summaryContainer.classList.remove('result-summary-left--pending', 'result-summary-left--filtered-round');
+                summaryContainer.onclick = null;
+                summaryContainer.style.cursor = 'default';
+                summaryContainer.removeAttribute('title');
+            } else {
+                const roundTabActive = ' result-header-tab--active';
+                const roundScopeTip = scopeDrawn
+                    ? '현재: 추첨 완료 저장만 표시. 클릭하면 미추첨 저장만 표시합니다.'
+                    : '현재: 미추첨 저장만 표시(기본). 클릭하면 추첨 완료 저장만 표시합니다.';
+                const bobTabActive = AppState.resultListBobSort ? ' result-header-tab--active' : '';
+                const statsExtraClass = barBubbleClick ? ' result-summary-drawn-main' : '';
+                const roundTabLabel = '[' + roundForHeaderButton + ']';
+                summaryContainer.innerHTML = `
+                    <button type="button" id="resultHeaderRoundBtn" class="result-header-tab result-header-tab--round${roundTabActive}" aria-label="${roundForHeaderButton}회. ${roundScopeTip}" title="${roundScopeTip}">${roundTabLabel}</button>
+                    <div class="result-summary-cell-mid" role="group" aria-label="BoB 순위 표시 · 당첨 등위">
+                        <div class="result-summary-mid-slot result-summary-mid-slot--bob">
+                            <button type="button" id="resultHeaderBobBtn" class="result-header-tab result-header-tab--bob${bobTabActive}" title="미추첨: BoB 켜면 BoB/행운 모드 행 핫·평균합 순+순위. BoB 끄면 세트↓·게임↑. 추첨 완료: BoB는 정성도·순위 토글.">BoB</button>
+                        </div>
+                        <div class="result-summary-mid-slot result-summary-mid-slot--rank">
+                            <span class="result-summary-hcol result-summary-hcol--rank" title="당첨 등수">등위</span>
+                        </div>
+                        <span class="result-summary-mid-slash" aria-hidden="true">/</span>
+                    </div>
+                    <div class="result-summary-main result-summary-stats-cell${statsExtraClass}">
+                        <span class="result-summary-game-n">게임수:${barGameCount}게임</span>
+                        <span class="result-summary-sep"> · </span>
+                        <span class="result-summary-result-s">결과통계:${barResultStats}</span>
+                    </div>`;
+                summaryContainer.classList.toggle('result-summary-left--pending', isPendingRoundSummary);
+                summaryContainer.classList.toggle('result-summary-left--filtered-round', true);
+                summaryContainer.removeAttribute('title');
+                const roundBtn = summaryContainer.querySelector('#resultHeaderRoundBtn');
+                const bobBtn = summaryContainer.querySelector('#resultHeaderBobBtn');
+                if (roundBtn) {
+                    roundBtn.addEventListener('click', function () {
+                        AppState.resultListScopeFilter = AppState.resultListScopeFilter === 'pending_only' ? 'drawn_only' : 'pending_only';
+                        loadAndDisplayResults();
+                    });
+                }
+                if (bobBtn) {
+                    bobBtn.addEventListener('click', function () {
+                        AppState.resultListBobSort = !AppState.resultListBobSort;
+                        loadAndDisplayResults();
+                    });
+                }
+
+                if (barBubbleClick) {
+                    summaryContainer.style.cursor = 'default';
+                    summaryContainer.title = '결과통계 영역 클릭: 회차별 분석 말풍선';
+                    summaryContainer.onclick = function (ev) {
+                        if (ev.target.closest('.result-summary-stats-cell')) {
+                            showResultAnalysisBubble(summary, displayData, sortedGroups);
+                        }
+                    };
+                } else {
+                    summaryContainer.style.cursor = 'default';
+                    summaryContainer.onclick = null;
+                }
+            }
+        }
+
+        resultContainer.innerHTML = ''; // 기존 요약 박스 제거 후 초기화
+        const selectAll = document.getElementById('selectAllDeleteCheckbox');
+        if (selectAll) { selectAll.checked = false; selectAll.indeterminate = false; }
+
+        // 각 그룹별로 결과 표시
+        sortedGroups.forEach(([roundStr, games]) => {
+            const round = Number(roundStr);
+
+            // 해당 회차의 당첨번호 찾기
+            const winRound = (AppState.allLotto645Data || []).find(function (r) { return Number(r.round) === round; });
+            const winningNumbers = winRound && winRound.numbers ? new Set(winRound.numbers) : null;
+            const isPendingRound = !winRound || !winRound.numbers;
+
+            /* 미추첨: BoB 끄면 항상 세트↓·게임↑. BoB 켜면 BoB/행운 모드 행만 harmony+순위(모드 행 없으면 세트·게임만) */
+            const pendingHasBobMode = games.some(isSavedGameBobMode);
+            if (isPendingRound) {
+                if (AppState.resultListBobSort && pendingHasBobMode) {
+                    games.sort((a, b) => compareSavedResultRowsBob(a, b, round, winRound, true));
+                } else {
+                    games.sort((a, b) => compareSavedResultRowsPending(a, b));
+                }
+            } else if (AppState.resultListBobSort) {
+                games.sort((a, b) => compareSavedResultRowsBob(a, b, round, winRound, false));
+            } else {
+                games.sort((a, b) => compareSavedResultRowsDrawn(a, b, winRound));
+            }
+
+            const bobRanks = AppState.resultListBobSort
+                ? computeBobCompetitionRanks(games)
+                : [];
+
+            games.forEach((game, gameIdx) => {
+                const resultLine = document.createElement('div');
+                resultLine.className = 'result-saved-line';
+
+                let matchNumsSet = new Set();
+                let winRankBadge = null;
+                if (winRound && winRound.numbers && game.numbers) {
+                    const result = getLottoRank(game.numbers, winRound.numbers, winRound.bonus);
+                    if (result.rank > 0) {
+                        const rankColors = { 1: '#FBC400', 2: '#69C8F2', 3: '#FF7272', 4: '#AAAAAA', 5: '#B0D840' };
+                        winRankBadge = document.createElement('span');
+                        winRankBadge.className = 'result-win-rank-badge';
+                        winRankBadge.style.backgroundColor = rankColors[result.rank] || '#ccc';
+                        winRankBadge.textContent = `${result.rank}등`;
+                    }
+                    matchNumsSet = new Set(game.numbers.filter(n => winRound.numbers.includes(n)));
+                    if (result.isBonusMatch) matchNumsSet.add(winRound.bonus);
+                }
+
+                const midCol = document.createElement('div');
+                midCol.className = 'result-col-mid';
+
+                const midSlotBob = document.createElement('div');
+                midSlotBob.className = 'result-col-mid-slot result-col-mid-slot--bob';
+                const midSlotRank = document.createElement('div');
+                midSlotRank.className = 'result-col-mid-slot result-col-mid-slot--rank';
+
+                if (AppState.resultListBobSort && bobRanks.length > gameIdx) {
+                    const br = bobRanks[gameIdx];
+                    const capped = br > 999 ? 999 : br;
+                    const box = document.createElement('span');
+                    box.className = 'result-bob-rank-box';
+                    box.title = isPendingRound
+                        ? 'BoB 순위: 조회구간 핫·평균합 정성도(행운·BoB 동일 기준). 말풍선 신뢰도%와 별개.'
+                        : 'BoB 정성도 순위: 당첨 6개 일치·합 차. 시트 Perfect순위 있으면 가중.';
+                    const numSpan = document.createElement('span');
+                    numSpan.className = 'result-bob-rank-box-num';
+                    numSpan.textContent = String(capped);
+                    box.appendChild(numSpan);
+                    midSlotBob.appendChild(box);
+                }
+                if (winRankBadge) midSlotRank.appendChild(winRankBadge);
+
+                midCol.appendChild(midSlotBob);
+                midCol.appendChild(midSlotRank);
+
+                const parts = getSavedGameRowSummaryParts(game);
+                const detailLineText = parts.detailLineText;
+                const numsSorted = parts.numsSorted;
+                const numsComma = numsSorted.length === 6 ? numsSorted.join(', ') : '—';
+
+                const mainRow = document.createElement('div');
+                mainRow.className = 'result-saved-main';
+                mainRow.style.flex = '1';
+                mainRow.style.minWidth = '0';
+
+                const roundSpan = document.createElement('span');
+                roundSpan.className = 'result-col-round';
+                roundSpan.textContent = `[${parts.roundNum}]`;
+
+                const detailWrap = document.createElement('span');
+                detailWrap.className = 'result-saved-detail';
+
+                const detailPrefixSpan = document.createElement('span');
+                detailPrefixSpan.className = 'result-saved-detail-lead';
+                detailPrefixSpan.textContent = parts.detailGamePrefix;
+
+                const detailStatsSpan = document.createElement('span');
+                detailStatsSpan.className = 'result-saved-detail-stats';
+                detailStatsSpan.textContent = parts.detailStats;
+
+                const detailAcSpan = document.createElement('span');
+                detailAcSpan.className = 'result-saved-detail-ac';
+                detailAcSpan.textContent = parts.detailAc;
+
+                const modeSpan = document.createElement('span');
+                modeSpan.className = 'result-saved-mode';
+                modeSpan.textContent = parts.modeLabel;
+
+                const detailTailSpan = document.createElement('span');
+                detailTailSpan.className = 'result-saved-detail-tail';
+                detailTailSpan.textContent = (parts.detailTail && parts.detailTail.length) ? (' ' + parts.detailTail) : parts.detailTail;
+
+                detailWrap.appendChild(detailPrefixSpan);
+                detailWrap.appendChild(detailStatsSpan);
+                detailWrap.appendChild(detailAcSpan);
+                detailWrap.appendChild(modeSpan);
+                detailWrap.appendChild(detailTailSpan);
+
+                mainRow.appendChild(roundSpan);
+                mainRow.appendChild(midCol);
+                mainRow.appendChild(detailWrap);
+                mainRow.title = `[${parts.roundNum}] · ${detailLineText}${numsSorted.length === 6 ? ' · 번호 ' + numsComma : ''}`;
+
+                const ballsCap = document.createElement('div');
+                ballsCap.className = 'result-saved-balls-cap';
+
+                const seqTouchPending = isPendingRound ? sequentialPairTouchSet(game.numbers) : new Set();
+
+                // 결과공 생성 (6개) — 너비는 CSS에서 번호저장+선택삭제 캡과 동일
+                if (game.numbers && Array.isArray(game.numbers)) {
+                    game.numbers.slice(0, 6).forEach(num => {
+                        const ball = createStatBall(num, 22, '0.8rem');
+
+                        // [수정] 사용자의 요청: 저장공은 기본 흰색, 당첨 회차와 일치하는 번호만 컬러 적용
+                        if (winningNumbers) {
+                            if (!winningNumbers.has(num)) {
+                                // 미당첨 번호: 화이트 스타일 강제 적용
+                                ball.classList.add('saved-white');
+                                ball.classList.remove(getBallColorClass(num));
+                                ball.style.opacity = '0.6';
+                            } else {
+                                // 당첨된 공: 컬러 유지 + 검정 테두리(보너스 공과 통일)
+                                ball.classList.add('result-saved-ball-match-draw');
+                                ball.style.boxShadow = '0 0 8px rgba(0,0,0,0.4)';
+                                ball.style.fontWeight = 'bold';
+                            }
+                        } else {
+                            // 당첨 데이터가 없는 경우 (미래 회차): 기본 흰색
+                            ball.classList.add('saved-white');
+                            ball.classList.remove(getBallColorClass(num));
+                            if (seqTouchPending.has(Number(num))) {
+                                ball.classList.add('result-saved-ball-consecutive-pending');
+                            }
+                        }
+                        ballsCap.appendChild(ball);
+                    });
+                }
+
+                const resultBallsContainer = document.createElement('div');
+                resultBallsContainer.className = 'result-saved-balls-row';
+
+                // 슬롯 7: 고정 폭 — '+' 는 좌우 2px 마진만 (스페이서로 한쪽 치우침 방지)
+                const slot7 = document.createElement('div');
+                slot7.className = 'result-saved-slot7';
+
+                const plusEl = document.createElement('span');
+                plusEl.className = 'result-saved-slot7-plus';
+
+                const bonusHost = document.createElement('div');
+                bonusHost.className = 'result-saved-slot7-ball';
+
+                if (winRound && winRound.bonus) {
+                    plusEl.textContent = '+';
+                    const bonusBall = createStatBall(winRound.bonus, 22, '0.8rem');
+
+                    // [수정] 보너스 번호 일치 여부 확인 (2등 여부와 관련)
+                    if (game.numbers && game.numbers.includes(winRound.bonus)) {
+                        bonusBall.classList.add('result-saved-ball-match-draw');
+                        bonusBall.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
+                        bonusBall.style.fontWeight = 'bold';
+                    } else {
+                        bonusBall.style.opacity = '0.6';
+                        bonusBall.style.backgroundColor = SHAREHARMONY_PALETTE.white;
+                        bonusBall.style.color = SHAREHARMONY_PALETTE.black;
+                        bonusBall.classList.add('result-saved-ball-match-draw');
+                    }
+                    bonusHost.appendChild(bonusBall);
+                } else if (isPendingRound) {
+                    plusEl.textContent = '+';
+                    const emptyBonus = document.createElement('div');
+                    emptyBonus.className = 'stat-ball stat-ball--sm result-saved-bonus-empty';
+                    emptyBonus.title = '미추첨 — 보너스 번호 없음';
+                    bonusHost.appendChild(emptyBonus);
+                }
+
+                slot7.appendChild(plusEl);
+                slot7.appendChild(bonusHost);
+
+                // 삭제용 체크박스 생성
+                const deleteCheckbox = document.createElement('input');
+                deleteCheckbox.type = 'checkbox';
+                deleteCheckbox.className = 'result-delete-checkbox';
+
+                deleteCheckbox.dataset.round = game.round;
+                deleteCheckbox.dataset.set = (game.set !== undefined ? game.set : game['세트']) || '';
+                deleteCheckbox.dataset.game = game.game;
+
+                resultBallsContainer.appendChild(ballsCap);
+                resultBallsContainer.appendChild(slot7);
+
+                mainRow.appendChild(resultBallsContainer);
+
+                resultLine.appendChild(mainRow);
+                resultLine.appendChild(deleteCheckbox);
+
+                resultLine.style.cursor = 'pointer';
+                resultLine.addEventListener('click', (e) => {
+                    if (e.target.type === 'checkbox') return;
+                    showGameAnalysisBubble(game, winRound);
+                });
+
+                resultContainer.appendChild(resultLine);
+            });
+        });
+        updateSaveBoxState();
+    } catch (error) {
+        console.error(error);
+        resultContainer.innerHTML = '<p style="text-align: center; color: #f00; font-size: 0.9rem;">결과를 로드할 수 없습니다.</p>';
+    }
+}
+
+async function fetchLatestWinningNumbers() {
+    const navBtn = document.getElementById('navFetchLatest');
+    if (navBtn) {
+        navBtn.style.pointerEvents = 'none';
+        navBtn.textContent = '조회중...';
+    }
+
+    try {
+        const base = getApiBaseUrl();
+
+        const latestRes = await fetch(base + '/api/lotto-latest?force=1', { cache: 'no-store' });
+        const latestData = await latestRes.json().catch(() => ({}));
+        if (latestData.returnValue !== 'success' || latestData.drwNo == null) {
+            alert('동행복권 최신 회차 정보를 가져오지 못했습니다.');
+            return;
+        }
+
+        const apiLatestRound = latestData.drwNo;
+        const localEndRound = AppState.endRound || 0;
+
+        if (apiLatestRound <= localEndRound) {
+            showNavBubble(navBtn, `이미 최신 상태입니다. (${localEndRound}회)`);
+            return;
+        }
+
+        const missingCount = apiLatestRound - localEndRound;
+        if (navBtn) navBtn.textContent = `${missingCount}회 취득중...`;
+
+        if (missingCount <= 100) {
+            const missingRounds = [];
+            for (let r = localEndRound + 1; r <= apiLatestRound; r++) missingRounds.push(r);
+            await fetch(base + '/api/fetch-missing-rounds?rounds=' + missingRounds.join(','), { cache: 'no-store' });
+        }
+
+        const syncRes = await fetch(base + '/api/sync-lotto645', { method: 'POST', cache: 'no-store' });
+        const syncData = await syncRes.json().catch(() => ({}));
+
+        if (syncData.returnValue === 'fail' && syncData.error) {
+            alert('회차 추가 실패: ' + syncData.error + '\nExcel에서 Lotto645.xlsx를 닫고 다시 시도하세요.');
+            return;
+        }
+
+        const loadFunc = (typeof window !== 'undefined' && window.loadLotto645Data)
+            ? window.loadLotto645Data
+            : (typeof loadLotto645Data !== 'undefined' ? loadLotto645Data : null);
+
+        if (!loadFunc) {
+            alert('데이터 로드 함수를 찾을 수 없습니다. 페이지를 새로고침하세요.');
+            return;
+        }
+
+        const newData = await loadFunc();
+        if (newData && newData.length > 0) {
+            await initializeStats(newData);
+
+            AppState.latestRoundApi = apiLatestRound;
+            AppState.latestRoundDateApi = latestData.drwNoDate || '';
+
+            const endInput = document.getElementById('endDate');
+            if (endInput && latestData.drwNoDate) {
+                const apiDateObj = parseDate(String(latestData.drwNoDate).trim());
+                if (apiDateObj instanceof Date && !isNaN(apiDateObj.getTime())) {
+                    endInput.value = formatDateYYMMDD(apiDateObj);
+                }
+            }
+
+            if (typeof updateRoundRangeDisplay === 'function') updateRoundRangeDisplay();
+            if (typeof renderStats === 'function') renderStats(newData);
+
+            // 중앙 패널 게임 초기화: 공 비우고 합계 000으로 리셋
+            AppState.setSelectedBalls = Array.from({ length: 5 }, () => []);
+            for (let i = 1; i <= 5; i++) {
+                const ballsContainer = document.getElementById(`gameBalls${i}`);
+                if (ballsContainer) ballsContainer.innerHTML = '';
+                const modeBtn = document.getElementById(`modeBtn${i}`);
+                if (modeBtn) {
+                    modeBtn.dataset.mode = 'manual';
+                    modeBtn.textContent = '수동';
+                }
+                const cb = document.getElementById(`gameCheckbox${i}`);
+                if (cb) cb.checked = false;
+                updateGameSum(i, []);
+            }
+
+            // 우측 패널 합계값: 기본 0(필터 없음)
+            const sumValEl = document.getElementById('resultSumValue');
+            if (sumValEl) {
+                sumValEl.value = '0';
+                if (!AppState.resultFilters) AppState.resultFilters = {};
+                AppState.resultFilters.sumValue = null;
+                if (AppState.currentViewNumbersBaseData) {
+                    renderViewNumbersList(AppState.currentViewNumbersBaseData);
+                }
+            }
+
+            const added = newData.length - (AppState.previousDataCount || 0);
+            alert(`${localEndRound + 1}회 ~ ${apiLatestRound}회 (${missingCount}회차) 추가 완료!\n총 ${newData.length}회차 데이터`);
+        } else {
+            alert('데이터를 다시 불러오지 못했습니다. 페이지를 새로고침하세요.');
+        }
+    } catch (e) {
+        console.error('[최근당첨번호] 오류:', e);
+        alert('최근당첨번호 조회 중 오류가 발생했습니다: ' + (e.message || String(e)));
+    } finally {
+        if (navBtn) {
+            navBtn.style.pointerEvents = '';
+            navBtn.textContent = '최근당첨번호';
+        }
+    }
+}
+
+if (typeof window !== "undefined") {
+    window.loadAndDisplayResults = loadAndDisplayResults;
+    window.fetchLatestWinningNumbers = fetchLatestWinningNumbers;
+}
+
+
+async function saveGamesToCSV() {
+    // [추가] 1. 삭제 대상 확인 (저장공 우측 체크박스)
+    const deleteCheckboxes = document.querySelectorAll('.result-delete-checkbox:checked');
+    let deleteCount = 0;
+
+    if (deleteCheckboxes.length > 0) {
+        if (confirm(`${deleteCheckboxes.length}개의 저장된 기록을 삭제하시겠습니까?`)) {
+            const itemsToDelete = Array.from(deleteCheckboxes).map(cb => ({
+                round: cb.dataset.round,
+                set: cb.dataset.set,
+                game: cb.dataset.game
+            }));
+
+            try {
+                const baseUrl = getApiBaseUrl();
+                const response = await fetch(`${baseUrl}/api/delete-lotto023`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ items: itemsToDelete })
+                });
+
+                if (response.ok) {
+                    const res = await response.json();
+                    if (res.returnValue === 'success') {
+                        // 캐시 삭제 및 새로고침
+                        if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
+                            localStorage.removeItem(CACHE_KEYS.LOTTO023);
+                        } else {
+                            localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
+                        }
+                        await loadAndDisplayResults();
+                        deleteCount = itemsToDelete.length;
+                    }
+                }
+            } catch (err) {
+                console.error('삭제 실패:', err);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+    }
+
+    // 2. 새 게임 저장 로직
+    const saveRound = document.getElementById('saveRound');
+    if (!saveRound) {
+        if (deleteCount > 0) {
+            updateSaveBoxState();
+            alert(`선택한 ${deleteCount}개의 기록이 삭제되었습니다.`);
+        }
+        return;
+    }
+
+    // 체크된 새 게임들 확인
+    const gamesToSave = [];
+    const oddEvenFilter = document.getElementById('filterOddEven')?.value || 'none';
+    const sequenceFilter = document.getElementById('filterConsecutive')?.value || 'none';
+    const hotColdFilter = document.getElementById('filterHotCold')?.value || 'none';
+
+    const mapRatioToNumber = (value) => {
+        if (value === 'none') return -1;
+        if (value === '0-6') return 0;
+        if (value === '1-5') return 1;
+        if (value === '2-4') return 2;
+        if (value === '3-3') return 3;
+        if (value === '4-2') return 4;
+        if (value === '5-1') return 5;
+        if (value === '6-0') return 6;
+        return -1;
+    };
+
+    const mapSequenceToNumber = (value) => {
+        if (value === 'none') return -1;
+        const n = parseInt(value, 10);
+        return Number.isNaN(n) ? -1 : n;
+    };
+
+    const oddEvenValue = mapRatioToNumber(oddEvenFilter);
+    const sequenceValue = mapSequenceToNumber(sequenceFilter);
+    const hotColdValue = mapRatioToNumber(hotColdFilter);
+
+    let roundNum = NaN;
+    let newSaveRoundReady = false;
+
+    for (let i = 1; i <= 5; i++) {
+        const checkbox = document.getElementById(`gameCheckbox${i}`);
+        if (checkbox && checkbox.checked) {
+            const numbers = AppState.setSelectedBalls[i - 1] || [];
+            const validNumbers = numbers.filter(n => n && n >= 1 && n <= 45);
+            const modeBtn = document.getElementById(`modeBtn${i}`);
+            const dsMode = modeBtn ? modeBtn.dataset.mode : '';
+
+            if (validNumbers.length === 6) {
+                if (!newSaveRoundReady) {
+                    if (!validateNewSaveRoundContext()) return;
+                    roundNum = getEffectiveSaveRound();
+                    newSaveRoundReady = true;
+                }
+                let gameMode = '수동';
+                if (modeBtn) {
+                    if (modeBtn.dataset.mode === 'lucky') gameMode = '행운';
+                    else if (modeBtn.dataset.mode === 'auto') gameMode = 'AI추천';
+                    else if (modeBtn.dataset.mode === 'semi-auto') gameMode = '반자동';
+                    else if (modeBtn.dataset.mode === 'bob') gameMode = 'BoB';
+                    else if (modeBtn.dataset.mode === 'manual') gameMode = '수동';
+                }
+                const sorted = validNumbers.sort((a, b) => a - b);
+
+                const actualOdd = sorted.filter(n => n % 2 === 1).length;
+                const actualSeq = (() => {
+                    let cnt = 0;
+                    for (let j = 1; j < sorted.length; j++) { if (sorted[j] - sorted[j - 1] === 1) cnt++; }
+                    return cnt;
+                })();
+                const actualHot = (() => {
+                    const { hot } = getHotColdNumbersBeforeRound(roundNum);
+                    const hotSet = new Set(hot);
+                    return sorted.filter(n => hotSet.has(n)).length;
+                })();
+
+                const pickSum = sorted.reduce((a, b) => a + b, 0);
+
+                gamesToSave.push({
+                    '회차': roundNum.toString(),
+                    '세트': '',
+                    '게임': i.toString(),
+                    '홀짝': (oddEvenValue === -1 ? actualOdd : oddEvenValue).toString(),
+                    '연속': (sequenceValue === -1 ? actualSeq : sequenceValue).toString(),
+                    '핫콜': (hotColdValue === -1 ? actualHot : hotColdValue).toString(),
+                    '게임선택': gameMode,
+                    '선택합계': String(pickSum),
+                    '선택1': sorted[0].toString(),
+                    '선택2': sorted[1].toString(),
+                    '선택3': sorted[2].toString(),
+                    '선택4': sorted[3].toString(),
+                    '선택5': sorted[4].toString(),
+                    '선택6': sorted[5].toString(),
+                    'Perfect순위': ''
+                });
+            }
+        }
+    }
+
+    const needNewSavePayload = gamesToSave.length > 0;
+
+    if (!needNewSavePayload) {
+        if (deleteCount > 0) {
+            if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
+                localStorage.removeItem(CACHE_KEYS.LOTTO023);
+            } else {
+                localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
+            }
+            await loadAndDisplayResults();
+            updateSaveBoxState();
+            alert(`선택한 ${deleteCount}개의 기록이 삭제되었습니다.`);
+        } else {
+            // 아무것도 안 했으면 알림
+            alert('저장할 게임이나 삭제할 기록이 선택되지 않았습니다.');
+        }
+        return;
+    }
+
+    if (!newSaveRoundReady && gamesToSave.length > 0) {
+        if (!validateNewSaveRoundContext()) return;
+        roundNum = getEffectiveSaveRound();
+        newSaveRoundReady = true;
+    }
+
+    const gamesPayload = gamesToSave;
+
+    // 동일 회차·세트/게임이 있으면 서버에서 세트+1, 게임 1부터 부여하므로 별도 경고 없이 전송
+
+    // 새 게임 서버 전송
+    try {
+        const baseUrl = getApiBaseUrl();
+        const response = await fetch(`${baseUrl}/api/save-lotto023`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ games: gamesPayload })
+        });
+
+        if (!response.ok) throw new Error(`서버 응답 오류 (${response.status})`);
+
+        const result = await parseFetchJsonResponse(response);
+        if (result.returnValue === 'success') {
+            if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
+                localStorage.removeItem(CACHE_KEYS.LOTTO023);
+            } else {
+                localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
+            }
+
+            AppState.setSelectedBalls = Array.from({ length: 5 }, () => []);
+            for (let i = 1; i <= 5; i++) {
+                const cb = document.getElementById(`gameCheckbox${i}`);
+                if (cb) { cb.checked = false; cb.disabled = true; }
+                const modeBtn = document.getElementById(`modeBtn${i}`);
+                if (modeBtn) {
+                    modeBtn.dataset.mode = 'manual';
+                    modeBtn.textContent = '수동';
+                    delete modeBtn.dataset.semiFrom;
+                    delete modeBtn.dataset.diversifyOffset;
+                    modeBtn.title = '';
+                }
+            }
+            /* 조회구간 통계 → 옵션필터·합계·핫콜 기준을 먼저 맞춘 뒤 저장공을 그려야 BoB·행 메타와 번호생성·신뢰도가 같은 전제를 씀 */
+            try {
+                const listData = AppState.currentViewNumbersBaseData || AppState.currentStatsRounds || AppState.allLotto645Data;
+                if (listData && listData.length > 0 && typeof extractAndApplyFilters === 'function') {
+                    extractAndApplyFilters(listData);
+                }
+                if (AppState.optionFilters) {
+                    AppState.optionFilters.oddEven = document.getElementById('filterOddEven')?.value || 'none';
+                    AppState.optionFilters.hotCold = document.getElementById('filterHotCold')?.value || 'none';
+                    AppState.optionFilters.consecutive = document.getElementById('filterConsecutive')?.value || 'none';
+                }
+            } catch (saveFilterErr) {
+                console.error('[저장 후] 조회구간 필터 반영 실패:', saveFilterErr);
+            }
+            /* Lotto023.xlsx 반영분을 다시 읽어 저장 목록(resultContainer) 재출력 */
+            await loadAndDisplayResults();
+            await generateAllGames(); /* generateAllGames는 async (자동/lucky 슬롯 풀 기반 보충) */
+            updateSaveBoxState();
+
+            const msg = deleteCount > 0 ? `새 게임이 저장되고 ${deleteCount}개의 기록이 삭제되었습니다.` : '저장 완료!';
+            alert(msg);
+        } else {
+            throw new Error(result.error || '알 수 없는 오류');
+        }
+    } catch (error) {
+        console.error('저장 오류:', error);
+        alert('저장 중 오류가 발생했습니다: ' + error.message);
+    }
+}
+
+if (typeof window !== "undefined") {
+    window.saveGamesToCSV = saveGamesToCSV;
+}
