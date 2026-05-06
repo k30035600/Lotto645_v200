@@ -48,6 +48,13 @@ app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
 app.config['JSON_AS_ASCII'] = False
 logger = get_logger(__name__)
 
+try:
+    from deploy.seed_dot_source import ensure_dot_source_seeded
+
+    ensure_dot_source_seeded(BASE_DIR)
+except Exception as _seed_exc:
+    logger.warning('[시드] .source 초기화 실패·건너뜀: %s', _seed_exc)
+
 # GET마다 1줄씩 찍히는 Werkzeug 액세스 로그는 소음이 큼. SERVER_ACCESS_LOG=1 일 때만 INFO 유지
 if os.environ.get('SERVER_ACCESS_LOG', '').lower() not in ('1', 'true', 'yes'):
     logging.getLogger('werkzeug').setLevel(logging.WARNING)
