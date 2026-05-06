@@ -172,7 +172,8 @@
     --radius-md: 6px;
     --radius-lg: 8px;
 
-    /* 앱 전역: 세로·가로 스크롤바 두께 통일 (Chromium/Safari width·height / Firefox thin) */
+    /* 전역 스크롤바: WebKit 계열 세로 막대 너비·가로 막대 높이 = 동일 px
+     * Firefox: 픽셀 지정 불가 → thin + scrollbar-color 로만 통일 */
     --app-scrollbar-size: 8px;
     --app-scrollbar-thumb-radius: 4px;
 }
@@ -183,117 +184,26 @@
     padding: 0;
 }
 
-/* 스크롤바 두께·색 통일 — 패널·저장목록·모달·말풍선·요약바 가로스크롤·차트 등 */
-.panel-inner,
-#statsList,
-#viewNumbersList,
-#resultScrollArea,
-#resultContainer,
-#roundStatsList,
-.stats-list,
-.modal-content,
-.help-modal-scroll,
-.apology-bubble.apology-bubble-pending,
-.golden-analysis-panel,
-.ai-chat-body,
-.result-summary-main,
-.result-summary-box--bar .result-summary-stats-cell,
-.apology-bubble .bubble-pending-bar,
-.bottom-chart-scroll {
+html {
     scrollbar-width: thin;
     scrollbar-color: var(--color-table-header) transparent;
 }
-.panel-inner::-webkit-scrollbar,
-#statsList::-webkit-scrollbar,
-#viewNumbersList::-webkit-scrollbar,
-#resultScrollArea::-webkit-scrollbar,
-#resultContainer::-webkit-scrollbar,
-#roundStatsList::-webkit-scrollbar,
-.stats-list::-webkit-scrollbar,
-.modal-content::-webkit-scrollbar,
-.help-modal-scroll::-webkit-scrollbar,
-.apology-bubble.apology-bubble-pending::-webkit-scrollbar,
-.golden-analysis-panel::-webkit-scrollbar,
-.ai-chat-body::-webkit-scrollbar,
-.result-summary-main::-webkit-scrollbar,
-.result-summary-box--bar .result-summary-stats-cell::-webkit-scrollbar,
-.apology-bubble .bubble-pending-bar::-webkit-scrollbar,
-.bottom-chart-scroll::-webkit-scrollbar {
+
+*::-webkit-scrollbar {
     width: var(--app-scrollbar-size);
     height: var(--app-scrollbar-size);
-}
-.panel-inner::-webkit-scrollbar-track,
-#statsList::-webkit-scrollbar-track,
-#viewNumbersList::-webkit-scrollbar-track,
-#resultScrollArea::-webkit-scrollbar-track,
-#resultContainer::-webkit-scrollbar-track,
-#roundStatsList::-webkit-scrollbar-track,
-.stats-list::-webkit-scrollbar-track,
-.modal-content::-webkit-scrollbar-track,
-.help-modal-scroll::-webkit-scrollbar-track,
-.apology-bubble.apology-bubble-pending::-webkit-scrollbar-track,
-.golden-analysis-panel::-webkit-scrollbar-track,
-.ai-chat-body::-webkit-scrollbar-track,
-.result-summary-main::-webkit-scrollbar-track,
-.result-summary-box--bar .result-summary-stats-cell::-webkit-scrollbar-track,
-.apology-bubble .bubble-pending-bar::-webkit-scrollbar-track,
-.bottom-chart-scroll::-webkit-scrollbar-track {
-    background: transparent;
-}
-.panel-inner::-webkit-scrollbar-thumb,
-#statsList::-webkit-scrollbar-thumb,
-#viewNumbersList::-webkit-scrollbar-thumb,
-#resultScrollArea::-webkit-scrollbar-thumb,
-#resultContainer::-webkit-scrollbar-thumb,
-#roundStatsList::-webkit-scrollbar-thumb,
-.stats-list::-webkit-scrollbar-thumb,
-.modal-content::-webkit-scrollbar-thumb,
-.help-modal-scroll::-webkit-scrollbar-thumb,
-.apology-bubble.apology-bubble-pending::-webkit-scrollbar-thumb,
-.golden-analysis-panel::-webkit-scrollbar-thumb,
-.ai-chat-body::-webkit-scrollbar-thumb,
-.result-summary-main::-webkit-scrollbar-thumb,
-.result-summary-box--bar .result-summary-stats-cell::-webkit-scrollbar-thumb,
-.apology-bubble .bubble-pending-bar::-webkit-scrollbar-thumb,
-.bottom-chart-scroll::-webkit-scrollbar-thumb {
-    background: var(--color-table-header);
-    border-radius: var(--app-scrollbar-thumb-radius);
-}
-.panel-inner::-webkit-scrollbar-thumb:hover,
-#statsList::-webkit-scrollbar-thumb:hover,
-#viewNumbersList::-webkit-scrollbar-thumb:hover,
-#resultScrollArea::-webkit-scrollbar-thumb:hover,
-#resultContainer::-webkit-scrollbar-thumb:hover,
-#roundStatsList::-webkit-scrollbar-thumb:hover,
-.stats-list::-webkit-scrollbar-thumb:hover,
-.modal-content::-webkit-scrollbar-thumb:hover,
-.help-modal-scroll::-webkit-scrollbar-thumb:hover,
-.apology-bubble.apology-bubble-pending::-webkit-scrollbar-thumb:hover,
-.golden-analysis-panel::-webkit-scrollbar-thumb:hover,
-.ai-chat-body::-webkit-scrollbar-thumb:hover,
-.result-summary-main::-webkit-scrollbar-thumb:hover,
-.result-summary-box--bar .result-summary-stats-cell::-webkit-scrollbar-thumb:hover,
-.apology-bubble .bubble-pending-bar::-webkit-scrollbar-thumb:hover,
-.bottom-chart-scroll::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
 }
 
-/*
- * 좌·중앙·우 3열(.main-container) 안의 어느 스크롤 박스든 동일 두께
- * (중첩 flex로 스크롤 주체가 .panel-inner | #statsList 등으로 갈릴 때 누락·기본 스타일 보정)
- */
-.main-container *::-webkit-scrollbar {
-    width: var(--app-scrollbar-size);
-    height: var(--app-scrollbar-size);
-}
-.main-container *::-webkit-scrollbar-track {
+*::-webkit-scrollbar-track {
     background: transparent;
 }
-.main-container *::-webkit-scrollbar-thumb {
+
+*::-webkit-scrollbar-thumb {
     background: var(--color-table-header);
     border-radius: var(--app-scrollbar-thumb-radius);
 }
-.main-container *::-webkit-scrollbar-thumb:hover {
+
+*::-webkit-scrollbar-thumb:hover {
     background: var(--color-accent);
 }
 
@@ -463,13 +373,14 @@ a.header-action-btn {
 
 /* ============================================================
    세 패널(통계공/게임공/결과공) 동일 높이 레이아웃
-   page-body(flex-col) → main-container(flex-row) → panel-box(flex-col) → 내부 패널
+   page-body(flex-col) → main-container → panel-box(flex-col) → 내부 패널
+   넓은 화면: CSS Grid 단일 행(1fr)으로 가용 높이를 채워 좌·중·우 열 높이를 항상 동일하게
+   ── flex만 쓸 때는 줄 높이가 콘텐츠 max에 맞춰져 좌우가 게임 패널보다 짧게 보일 수 있음
    ============================================================ */
 .main-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
     gap: 15px;
     width: 100%;
     max-width: 100%;
@@ -481,6 +392,29 @@ a.header-action-btn {
     box-sizing: border-box;
     background: transparent;
     overflow: hidden;
+}
+
+/* 줄바꿈 구간에서는 기존 flex 레이아웃 유지 */
+@media (max-width: 1480px) {
+    .main-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: stretch;
+    }
+
+    .panel-box-game {
+        order: 1;
+    }
+
+    .panel-box-win {
+        order: 2;
+    }
+
+    .panel-box-stats {
+        order: 3;
+    }
 }
 
 /* 래퍼(.panel-box): 중앙 게임 패널 극대화, 좌/우 최소화 */
@@ -593,6 +527,11 @@ a.header-action-btn {
     box-sizing: border-box;
 }
 
+/* 좌측 통계: 조회/정렬바 고정, 목록(#statsList)만 스크롤 — 이중 스크롤·스크롤바 경계 미세 clipping 체감 완화 */
+.stats-panel .panel-inner {
+    overflow-y: hidden;
+}
+
 /* 가운데 패널 내부 박스 너비·패딩 통일 (네비·필터·선택공·저장공·당첨구조 등) */
 .game-panel .panel-inner > * {
     width: 100%;
@@ -603,34 +542,246 @@ a.header-action-btn {
     padding-right: 8px;
 }
 
-/* 화면 너비가 줄어들어 겹칠(wrap) 때의 순서 제어 */
-@media (max-width: 1480px) {
-    .main-container {
-        flex-wrap: wrap;
+/* ============================================================
+   뷰포트 640px 이하: 패널 최소 너비 640px + 가로 스크롤 레일
+   간편 레이아웃(html.app-layout-center-only)에서는 비활성
+   ============================================================ */
+.narrow-viewport-service-notice {
+    display: none;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 12px;
+    padding: 8px 10px;
+    margin: 0 0 8px 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #5d4037;
+    background: linear-gradient(90deg, #fff8e1 0%, #ffecb3 100%);
+    border: 1px solid #ffa000;
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.narrow-viewport-service-notice strong {
+    color: #e65100;
+    white-space: nowrap;
+}
+
+.narrow-viewport-service-notice .narrow-viewport-hint-sep {
+    display: none;
+}
+
+.narrow-viewport-dismiss {
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-harmony-border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.narrow-viewport-dismiss:hover {
+    background: #fff;
+}
+
+html.narrow-viewport-notice-hidden .narrow-viewport-service-notice,
+html.app-layout-center-only .narrow-viewport-service-notice {
+    display: none !important;
+}
+
+@media (max-width: 640px) {
+    html:not(.app-layout-center-only):not(.narrow-viewport-notice-hidden) .narrow-viewport-service-notice {
+        display: flex;
     }
-    .panel-box-game { order: 1; }
-    .panel-box-win  { order: 2; }
-    .panel-box-stats { order: 3; }
+
+    html:not(.app-layout-center-only) .main-container {
+        display: flex !important;
+        flex-direction: row;
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        align-items: stretch;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x proximity;
+        gap: 15px;
+        padding-bottom: 2px;
+    }
+
+    html:not(.app-layout-center-only) .panel-box-stats,
+    html:not(.app-layout-center-only) .panel-box-game,
+    html:not(.app-layout-center-only) .panel-box-win {
+        flex: 0 0 auto !important;
+        min-width: 640px !important;
+        width: 640px;
+        max-width: none !important;
+        scroll-snap-align: center;
+    }
 }
 
 /*
  * 간편 레이아웃 (?layout=center | ?m=1 | center.html)
- * 좌·우 패널·하단 차트·푸터는 숨기고 DOM은 유지 → init 스크립트 호환
+ * 상단 탭으로 통계 / 게임 / 당첨 패널 전환 (data-compact-panel: stats | game | win, 생략 시 게임)
+ * 하단 차트·푸터는 숨김 — DOM은 유지 (init 스크립트 호환)
+ * 가용폭: 헤더+본문 max-width 640px
  */
+.compact-panel-tabs {
+    display: none;
+    flex-shrink: 0;
+    width: 100%;
+    gap: 6px;
+    padding: 8px 10px 6px;
+    margin: 0;
+    background: var(--color-bg-light, #F0F2F5);
+    border-bottom: 1px solid var(--color-harmony-border);
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+html.app-layout-center-only .compact-panel-tabs {
+    display: flex;
+}
+
+.compact-panel-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 8px 6px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    font-family: inherit;
+    color: var(--color-primary);
+    background: var(--color-harmony-bg);
+    border: 1.5px solid var(--color-harmony-border);
+    border-radius: 8px;
+    cursor: pointer;
+    line-height: 1.25;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.compact-panel-tab:hover {
+    background: #fff;
+    border-color: var(--color-accent);
+}
+
+.compact-panel-tab--active {
+    background: var(--color-accent);
+    color: #fff;
+    border-color: var(--color-accent);
+}
+
+.compact-panel-tab--active:hover {
+    background: var(--color-accent-dark, #37474f);
+    color: #fff;
+    border-color: var(--color-accent-dark, #37474f);
+}
+
+html.app-layout-center-only body {
+    align-items: center;
+}
+
+html.app-layout-center-only .page-header,
+html.app-layout-center-only .page-body {
+    width: 100%;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+html.app-layout-center-only .page-header {
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+
+html.app-layout-center-only .header-content {
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100%;
+    max-width: 100%;
+    gap: 8px;
+    padding-left: max(4px, env(safe-area-inset-left, 0px));
+    padding-right: max(4px, env(safe-area-inset-right, 0px));
+}
+
+html.app-layout-center-only .logo-area {
+    flex: 0 1 auto;
+    min-width: 0;
+}
+
+html.app-layout-center-only .logo-text > p {
+    display: none !important;
+}
+
+html.app-layout-center-only .logo-symbol {
+    display: none !important;
+}
+
+html.app-layout-center-only .header-nav {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+html.app-layout-center-only nav.header-nav > div {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* 한 번에 하나의 패널만 표시 */
 html.app-layout-center-only .panel-box-stats,
+html.app-layout-center-only .panel-box-game,
 html.app-layout-center-only .panel-box-win {
     display: none !important;
 }
 
-html.app-layout-center-only .main-container {
-    flex-wrap: nowrap;
-    width: 100%;
+html.app-layout-center-only:not([data-compact-panel]) .panel-box-game,
+html.app-layout-center-only[data-compact-panel="game"] .panel-box-game {
+    display: flex !important;
 }
 
-html.app-layout-center-only .panel-box-game {
-    flex: 1 1 100% !important;
-    max-width: 100%;
-    min-width: 0;
+html.app-layout-center-only[data-compact-panel="stats"] .panel-box-stats {
+    display: flex !important;
+}
+
+html.app-layout-center-only[data-compact-panel="win"] .panel-box-win {
+    display: flex !important;
+}
+
+html.app-layout-center-only .main-container {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    align-items: stretch;
+}
+
+/* 좌·중·우 패널 래퍼: 가운데와 동일하게 세로 꽉 참 (탭 전환 시 높이 통일) */
+html.app-layout-center-only .panel-box-stats,
+html.app-layout-center-only .panel-box-game,
+html.app-layout-center-only .panel-box-win {
+    flex: 1 1 0% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    align-self: stretch !important;
+}
+
+html.app-layout-center-only #statsPanel.stats-panel,
+html.app-layout-center-only .panel-box-game .game-panel,
+html.app-layout-center-only .panel-box-win #viewNumbersPanel {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
 }
 
 html.app-layout-center-only #bottomArea,
@@ -648,9 +799,26 @@ html.app-layout-center-only .page-body {
     min-height: 0;
 }
 
-html.app-layout-center-only .game-panel .panel-inner > * {
+html.app-layout-center-only .stats-panel .panel-inner > *,
+html.app-layout-center-only .game-panel .panel-inner > *,
+html.app-layout-center-only #viewNumbersPanel .panel-inner > * {
     padding-left: max(8px, env(safe-area-inset-left, 0px));
     padding-right: max(8px, env(safe-area-inset-right, 0px));
+}
+
+/* 간편 모드 게임 행: 6공 사이 간격 균등(안분)·우측 빈 칸 줄임 */
+html.app-layout-center-only .game-set-row .game-row-tail {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+html.app-layout-center-only #gameBox .game-balls-wrap {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    justify-content: space-between !important;
+    gap: 2px !important;
 }
 
 .panel-box-stats,
@@ -792,8 +960,14 @@ html.app-layout-center-only .game-panel .panel-inner > * {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 0 6px;
+    /* 오버레이 스크롤바·margin-left:auto 우측 정렬 텍스트와 겹침 방지 (gutter + 명시 여백) */
+    padding: 6px calc(8px + var(--app-scrollbar-size) + 6px) 6px 8px;
+    /* width:100% + 좌우 margin 동시 적용 시 박스가 부모보다 넓어져 overflow:hidden 에서 스크롤바 우측이 잘림 */
     margin: 0 6px;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
@@ -801,6 +975,10 @@ html.app-layout-center-only .game-panel .panel-inner > * {
     max-height: none;
     scrollbar-gutter: stable;
     box-sizing: border-box;
+    background: var(--color-bg-white);
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
 }
 
 .load-error {
@@ -827,7 +1005,7 @@ html.app-layout-center-only .game-panel .panel-inner > * {
     width: auto;
     align-self: stretch;
     max-width: 100%;
-    padding: 0 6px;
+    padding: 6px calc(8px + var(--app-scrollbar-size) + 6px) 6px 8px;
     box-sizing: border-box;
     scrollbar-gutter: stable;
 }
@@ -867,18 +1045,6 @@ html.app-layout-center-only .game-panel .panel-inner > * {
 }
 
 
-
-#statsList {
-    background: var(--color-bg-white);
-    border-radius: 0;
-    padding: 8px;
-    border: none;
-    width: 100%;
-    box-sizing: border-box;
-    box-shadow: none;
-    content-visibility: auto;
-    contain-intrinsic-size: auto 200px;
-}
 
 #roundStatsList {
     max-height: calc(100vh - 450px);
@@ -1877,11 +2043,11 @@ input.result-filter-text {
     box-sizing: border-box;
 }
 
-/* 6공 영역: 저장공 .result-saved-balls-cap과 동일 너비·간격 */
+/* 6공 영역: 저장공 .result-saved-balls-cap과 동일 너비. 공 간격은 연속 두지 않고 flex-start로 한 덩어리 정렬 */
 .game-balls-wrap {
     display: flex;
     gap: 2px;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     flex: 0 0 auto;
     flex-shrink: 0;

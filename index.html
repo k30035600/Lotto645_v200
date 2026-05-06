@@ -17,9 +17,43 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260506dataGapWarn">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260507statsListWidthFix">
     <script>
     (function () {
+        window.__SH_COMPACT_INLINE_CSS__ = [
+            'html.app-layout-center-only body{align-items:center!important}',
+            'html.app-layout-center-only .page-header,html.app-layout-center-only .page-body{width:100%!important;max-width:640px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box!important}',
+            'html.app-layout-center-only .page-header{padding-left:max(8px,env(safe-area-inset-left,0px))!important;padding-right:max(8px,env(safe-area-inset-right,0px))!important}',
+            'html.app-layout-center-only .header-content{justify-content:space-between!important;align-items:center!important;width:100%!important;max-width:100%!important;gap:8px!important;padding-left:max(4px,env(safe-area-inset-left,0px))!important;padding-right:max(4px,env(safe-area-inset-right,0px))!important}',
+            'html.app-layout-center-only .logo-area{flex:0 1 auto!important;min-width:0!important}',
+            'html.app-layout-center-only .logo-text>p{display:none!important}',
+            'html.app-layout-center-only .logo-symbol{display:none!important}',
+            'html.app-layout-center-only .header-nav{flex:0 0 auto!important;margin-left:auto!important}',
+            'html.app-layout-center-only nav.header-nav>div{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important}',
+            'html.app-layout-center-only .compact-panel-tabs{display:flex!important}',
+            'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-game,html.app-layout-center-only .panel-box-win{display:none!important}',
+            'html.app-layout-center-only:not([data-compact-panel]) .panel-box-game,html.app-layout-center-only[data-compact-panel=game] .panel-box-game{display:flex!important}',
+            'html.app-layout-center-only[data-compact-panel=stats] .panel-box-stats{display:flex!important}',
+            'html.app-layout-center-only[data-compact-panel=win] .panel-box-win{display:flex!important}',
+            'html.app-layout-center-only .main-container{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;flex:1!important;min-height:0!important;align-items:stretch!important}',
+            'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-game,html.app-layout-center-only .panel-box-win{flex:1 1 0%!important;min-width:0!important;min-height:0!important;width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;align-self:stretch!important}',
+            'html.app-layout-center-only #statsPanel.stats-panel,html.app-layout-center-only .panel-box-game .game-panel,html.app-layout-center-only .panel-box-win #viewNumbersPanel{flex:1 1 0%!important;min-height:0!important}',
+            'html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}',
+            'html.app-layout-center-only #mainFooter{display:none!important}',
+            'html.app-layout-center-only .game-set-row .game-row-tail{flex:1 1 auto!important;min-width:0!important}',
+            'html.app-layout-center-only #gameBox .game-balls-wrap{flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important;justify-content:space-between!important;gap:2px!important}'
+        ].join('');
+        function applyCompactPanelAttr(q) {
+            try {
+                var p = (q.get('panel') || '').toLowerCase();
+                if (p === 'stats' || p === 'game' || p === 'win') {
+                    document.documentElement.setAttribute('data-compact-panel', p);
+                    return;
+                }
+                /* 주소에 panel 없을 때 가운데(게임) 패널 기준 — sessionStorage 무시해 간편 진입 의도 명확화 */
+                document.documentElement.setAttribute('data-compact-panel', 'game');
+            } catch (e) { /* ignore */ }
+        }
         function applyCompactFlag() {
             try {
                 var q = new URLSearchParams(location.search || '');
@@ -28,18 +62,14 @@
                 var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
                 if (!compact) return;
                 document.documentElement.classList.add('app-layout-center-only');
-                /* 오래된 styles.css 캐시에도 간편 레이아웃이 먹히도록 인라인 백업(동일 규칙은 styles.css에도 있음) */
-                if (document.getElementById('app-compact-layout-fallback')) return;
-                var st = document.createElement('style');
-                st.id = 'app-compact-layout-fallback';
-                st.textContent = [
-                    'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-win{display:none!important}',
-                    'html.app-layout-center-only .main-container{flex-wrap:nowrap;width:100%}',
-                    'html.app-layout-center-only .panel-box-game{flex:1 1 100%!important;max-width:100%;min-width:0}',
-                    'html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}',
-                    'html.app-layout-center-only #mainFooter{display:none!important}'
-                ].join('');
-                document.head.appendChild(st);
+                applyCompactPanelAttr(q);
+                var st = document.getElementById('app-compact-layout-fallback');
+                if (!st) {
+                    st = document.createElement('style');
+                    st.id = 'app-compact-layout-fallback';
+                    document.head.appendChild(st);
+                }
+                st.textContent = window.__SH_COMPACT_INLINE_CSS__;
             } catch (e) { /* ignore */ }
         }
         applyCompactFlag();
@@ -50,17 +80,30 @@
 <body>
 <script>
 (function () {
+    try {
+        if (sessionStorage.getItem('narrowViewportNoticeHidden') === '1') {
+            document.documentElement.classList.add('narrow-viewport-notice-hidden');
+        }
+    } catch (e) { /* ignore */ }
+})();
+</script>
+<script>
+(function () {
     var q = new URLSearchParams(location.search || '');
     var layout = (q.get('layout') || '').toLowerCase();
     var m = (q.get('m') || '').trim().toLowerCase();
     var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
     if (compact) {
         document.documentElement.classList.add('app-layout-center-only');
-        if (!document.getElementById('app-compact-layout-fallback')) {
-            var st = document.createElement('style');
-            st.id = 'app-compact-layout-fallback';
-            st.textContent = 'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-win{display:none!important}html.app-layout-center-only .main-container{flex-wrap:nowrap;width:100%}html.app-layout-center-only .panel-box-game{flex:1 1 100%!important;max-width:100%;min-width:0}html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}html.app-layout-center-only #mainFooter{display:none!important}';
-            document.head.appendChild(st);
+        var pUrl = (q.get('panel') || '').toLowerCase();
+        if (pUrl === 'stats' || pUrl === 'game' || pUrl === 'win') {
+            document.documentElement.setAttribute('data-compact-panel', pUrl);
+        } else {
+            document.documentElement.setAttribute('data-compact-panel', 'game');
+        }
+        var stSync = document.getElementById('app-compact-layout-fallback');
+        if (stSync && typeof window.__SH_COMPACT_INLINE_CSS__ === 'string') {
+            stSync.textContent = window.__SH_COMPACT_INLINE_CSS__;
         }
     }
     document.addEventListener('DOMContentLoaded', function () {
@@ -91,7 +134,7 @@
             </div>
             <nav class="header-nav" aria-label="주 메뉴">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <a href="?layout=center" id="navLayoutCompactLink" class="header-action-btn" title="스마트폰·태블릿: 가운데 패널만 표시">간편</a>
+                    <a href="?layout=center&amp;panel=game" id="navLayoutCompactLink" class="header-action-btn" title="간편 화면(기본: 가운데 게임 패널): 상단 탭으로 통계·게임·당첨 전환">간편</a>
                     <a href="/" id="navLayoutFullLink" class="header-action-btn" title="좌·우 통계·당첨 패널 포함 전체 화면" style="display:none;">전체</a>
                     <button id="helpBtn" class="header-action-btn" onclick="showHelpModal()">도움말</button>
                     <button id="exitBtn" class="header-action-btn" onclick="shutdownServer()">종료</button>
@@ -102,6 +145,32 @@
     </header>
 
     <main class="page-body">
+        <div id="narrowViewportNotice" class="narrow-viewport-service-notice" role="alert" aria-live="polite">
+            <strong>표시 안내:</strong>
+            화면 너비가 640px 이하입니다. 패널 최소 폭 기준상 권장 화면이 아니며, 이 너비에서는 정상적인 서비스 제공이 어렵습니다.
+            <span class="narrow-viewport-hint-sep"></span>
+            가운데(게임) 패널이 먼저 보입니다. 한 줄 아래 패널 띠를 좌우로 스크롤하면 통계·당첨 패널을 볼 수 있습니다.
+            <button type="button" class="narrow-viewport-dismiss" id="narrowViewportDismiss" aria-label="안내 숨기기">숨김</button>
+        </div>
+        <nav id="compactPanelTabs" class="compact-panel-tabs" role="tablist" aria-label="간편 모드 패널 선택">
+            <button type="button" role="tab" class="compact-panel-tab" id="compactTabStats" data-compact-panel="stats" aria-selected="false">통계</button>
+            <button type="button" role="tab" class="compact-panel-tab" id="compactTabGame" data-compact-panel="game" aria-selected="true">게임</button>
+            <button type="button" role="tab" class="compact-panel-tab" id="compactTabWin" data-compact-panel="win" aria-selected="false">당첨</button>
+        </nav>
+        <script>
+        (function () {
+            var r = document.documentElement;
+            if (!r.classList.contains('app-layout-center-only')) return;
+            var k = r.getAttribute('data-compact-panel') || 'game';
+            if (k !== 'stats' && k !== 'game' && k !== 'win') k = 'game';
+            document.querySelectorAll('#compactPanelTabs .compact-panel-tab').forEach(function (b) {
+                var p = b.getAttribute('data-compact-panel');
+                var sel = p === k;
+                b.classList.toggle('compact-panel-tab--active', sel);
+                b.setAttribute('aria-selected', sel ? 'true' : 'false');
+            });
+        })();
+        </script>
         <div class="main-container">
             <!-- 좌측 패널 (통계공) -->
             <div class="panel-box panel-box-stats">
@@ -139,7 +208,7 @@
                             <option value="3">3회이상</option>
                         </select>
                     </div>
-                    <div id="statsList" class="stats-list ui-box" style="padding: 6px 8px;">
+                    <div id="statsList" class="stats-list ui-box">
                         <p>통계공/당첨공 로딩중</p>
                     </div>
                     </div>
@@ -360,7 +429,7 @@
                         </div>
                     </div>
 
-                    <div id="viewNumbersList" class="stats-list view-numbers-inline ui-box" style="padding: 6px 8px;">
+                    <div id="viewNumbersList" class="stats-list view-numbers-inline ui-box">
                         <p>통계공/당첨공 로딩중</p>
                     </div>
                     </div>
@@ -464,7 +533,7 @@
     <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->
-    <script src="app.js?v=20260424refactor"></script>
+    <script src="app.js?v=20260507compactDefaultGame"></script>
 
 </body>
 
