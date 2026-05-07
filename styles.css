@@ -609,8 +609,16 @@ html.app-layout-center-only .narrow-viewport-service-notice {
  * 간편 레이아웃 (?layout=center | ?m=1 | center.html)
  * 상단 탭으로 통계 / 게임 / 당첨 패널 전환 (data-compact-panel: stats | game | win, 생략 시 게임)
  * 하단 차트·푸터는 숨김 — DOM은 유지 (init 스크립트 호환)
- * 가용폭: 헤더+본문 max-width 640px — 좁은 세로폰(Note10 등, ~420px 이하)은 아래 미디어쿼리로 추가 최적화
+ * 가용폭: 헤더+본문 max-width 640px — 좁은 세로폰(논리폭 약 412px 전후)은 아래 유동 스케일·미디어쿼리로 추가 최적화
  */
+html.app-layout-center-only {
+    /*
+     * 유효 너비 = min(뷰포트, 간편 본문 상한 640px). 412~640 구간에서 t=0~1 선형 (412 미만은 t=0, 640 초과는 t=1)
+     */
+    --sh-compact-eff-w: min(100vw, 640px);
+    --sh-compact-fluid: clamp(0, calc((var(--sh-compact-eff-w) - 412px) / 228), 1);
+}
+
 .compact-panel-tabs {
     display: none;
     flex-shrink: 0;
@@ -661,11 +669,16 @@ html.app-layout-center-only .compact-panel-tabs {
     border-color: var(--color-accent-dark, #37474f);
 }
 
+/* 간편: 412~640 구간 탭 글자·패딩 유동 축소 */
+html.app-layout-center-only .compact-panel-tab {
+    font-size: calc(0.72rem + var(--sh-compact-fluid) * 0.08rem);
+    padding: calc(8px - var(--sh-compact-fluid) * 2px) calc(6px - var(--sh-compact-fluid) * 2px);
+    min-height: calc(38px + var(--sh-compact-fluid) * 10px);
+}
+
 html.app-layout-center-only body {
     align-items: center;
 }
-
-html.app-layout-center-only .page-header,
 html.app-layout-center-only .page-body {
     width: 100%;
     max-width: 640px;
@@ -863,16 +876,6 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
         padding-right: max(6px, env(safe-area-inset-right, 0px));
     }
 
-    /* 단일 패널이 전체 폭을 씀 → 살짝 작은 공으로 가로 균형(게임/통계/당첨 동일 변수) */
-    html.app-layout-center-only .game-panel,
-    html.app-layout-center-only #statsPanel,
-    html.app-layout-center-only #viewNumbersPanel {
-        --ball-size: 19px;
-        --ball-font: 0.72rem;
-        --ball-size-sm: 17px;
-        --ball-font-sm: 0.66rem;
-    }
-
     html.app-layout-center-only .game-panel .zone-top,
     html.app-layout-center-only .game-panel .zone-mid {
         padding-left: max(6px, env(safe-area-inset-left, 6px)) !important;
@@ -880,9 +883,51 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
     }
 }
 
+/* 간편: 통계·게임·당첨 — 번호공·패널 글자 크기를 412px~640px 유효 너비에서 선형 보간 */
+html.app-layout-center-only #statsPanel.stats-panel,
+html.app-layout-center-only .game-panel,
+html.app-layout-center-only #viewNumbersPanel {
+    --ball-size: calc(17px + var(--sh-compact-fluid) * 5px);
+    --ball-size-sm: calc(16px + var(--sh-compact-fluid) * 5px);
+    --ball-font: calc(0.63rem + var(--sh-compact-fluid) * 0.17rem);
+    --ball-font-sm: calc(0.58rem + var(--sh-compact-fluid) * 0.14rem);
+    font-size: calc(0.88rem + var(--sh-compact-fluid) * 0.085rem);
+}
+
+html.app-layout-center-only .header-content .logo-text h1 {
+    font-size: calc(1.05rem + var(--sh-compact-fluid) * 0.55rem);
+}
+
+html.app-layout-center-only .header-action-btn {
+    font-size: calc(0.7rem + var(--sh-compact-fluid) * 0.08rem);
+}
+
+html.app-layout-center-only #centerNavBar .center-nav-link {
+    font-size: calc(0.72rem + var(--sh-compact-fluid) * 0.06rem);
+}
+
+html.app-layout-center-only .number-grid-container {
+    gap: calc(3px + var(--sh-compact-fluid) * 3px) calc(2px + var(--sh-compact-fluid) * 1px);
+}
+
+html.app-layout-center-only .game-panel .option-filter-input {
+    height: calc(20px + var(--sh-compact-fluid) * 2px);
+}
+
+html.app-layout-center-only .game-panel .filter-dropdown {
+    height: calc(22px + var(--sh-compact-fluid) * 2px);
+    font-size: calc(0.66rem + var(--sh-compact-fluid) * 0.055rem);
+}
+
+html.app-layout-center-only .game-set-row .game-mode-btn {
+    width: calc(46px + var(--sh-compact-fluid) * 6px);
+    font-size: calc(0.62rem + var(--sh-compact-fluid) * 0.055rem);
+}
+
 /* 간편 전용: 6공·저장 목록 표 너비를 px(--ball-size)로 통일하고 그리드 열 rem 계산 재적용 */
 html.app-layout-center-only .game-panel {
     --game-six-ball-gap: 2px;
+    --result-saved-slot7-width: calc(42px + var(--sh-compact-fluid) * 6px);
     --game-six-balls-width: calc(6 * var(--ball-size) + 5 * var(--game-six-ball-gap));
     --result-saved-actions-cap-width: var(--game-six-balls-width);
     --result-saved-right-block-width: calc(min(var(--result-saved-actions-cap-width), 38vw) + var(--result-saved-slot7-width));
