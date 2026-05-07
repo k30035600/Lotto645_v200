@@ -1245,7 +1245,6 @@ async function initializeApp() {
         fetch('/api/health')
             .then(res => res.json())
             .then(data => {
-                if (document.documentElement.classList.contains('app-layout-center-only')) return;
                 const titleEl = document.querySelector('h1');
                 if (titleEl && data.startTime) {
                     const timeSpan = document.createElement('span');
@@ -3599,13 +3598,6 @@ function extractAndApplyFilters(filteredData) {
  * 합계 그래프↔번호순, 번호통계↔당첨순, 출현통계↔출현순.
  */
 function syncBottomChartsToSortState() {
-    if (typeof document !== 'undefined' && document.documentElement.classList.contains('app-layout-center-only')) {
-        ['bottomArea', 'bottomAreaWin', 'bottomAreaNumber'].forEach(function (id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('visible');
-        });
-        return;
-    }
     const cs = AppState.currentSort;
     const sumPanel = document.getElementById('bottomArea');
     const winFreqPanel = document.getElementById('bottomAreaWin');
@@ -3648,118 +3640,22 @@ function syncBottomChartsToSortState() {
 
 // fetchLatestWinningNumbers → modules/dataLoader.js 로 이동되었습니다.
 
-/**
- * 간편 모드: 통계 · 게임 · 당첨 탭 전환, sessionStorage·주소창 `panel` 반영, 차트 리사이즈 알림
- */
-function setupCompactPanelTabs() {
-    if (setupCompactPanelTabs._done) return;
-    const tabsEl = document.getElementById('compactPanelTabs');
-    if (!tabsEl) return;
-    setupCompactPanelTabs._done = true;
-
-    function isCompactUrl(u) {
-        const l = (u.searchParams.get('layout') || '').toLowerCase();
-        const m = (u.searchParams.get('m') || '').trim().toLowerCase();
-        const c = (u.searchParams.get('compact') || '').toLowerCase();
-        return l === 'center' || m === '1' || m === 'true' || c === '1';
-    }
-
-    function getCompactPanelKey() {
-        const raw = document.documentElement.getAttribute('data-compact-panel');
-        if (raw === 'stats' || raw === 'game' || raw === 'win') return raw;
-        return 'game';
-    }
-
-    /** 간편 URL에 panel 이 없거나 잘못되었으면 가운데(게임) 등 현재 패널 키로 맞춤 */
-    function normalizeCompactUrlPanel() {
-        try {
-            const u = new URL(window.location.href);
-            if (!isCompactUrl(u)) return;
-            const raw = (u.searchParams.get('panel') || '').toLowerCase();
-            if (raw === 'stats' || raw === 'game' || raw === 'win') return;
-            const key = getCompactPanelKey();
-            u.searchParams.set('panel', key);
-            history.replaceState(null, '', u.pathname + u.search + u.hash);
-            try {
-                sessionStorage.setItem('compactPanel', key);
-            } catch (e2) {
-                /* ignore */
-            }
-        } catch (e) {
-            /* ignore */
-        }
-    }
-
-    function syncTabButtons() {
-        if (!document.documentElement.classList.contains('app-layout-center-only')) return;
-        const key = getCompactPanelKey();
-        tabsEl.querySelectorAll('.compact-panel-tab').forEach(function (btn) {
-            const p = btn.getAttribute('data-compact-panel');
-            const sel = p === key;
-            btn.setAttribute('aria-selected', sel ? 'true' : 'false');
-            btn.classList.toggle('compact-panel-tab--active', sel);
-        });
-    }
-
-    function setCompactPanel(panel) {
-        const root = document.documentElement;
-        if (!root.classList.contains('app-layout-center-only')) return;
-        if (panel !== 'stats' && panel !== 'game' && panel !== 'win') return;
-        root.setAttribute('data-compact-panel', panel);
-        try {
-            sessionStorage.setItem('compactPanel', panel);
-        } catch (e) {
-            /* ignore */
-        }
-        try {
-            const u = new URL(window.location.href);
-            if (!isCompactUrl(u)) return;
-            u.searchParams.set('panel', panel);
-            history.replaceState(null, '', u.pathname + u.search + u.hash);
-        } catch (e2) {
-            /* ignore */
-        }
-        syncTabButtons();
-        window.setTimeout(function () {
-            window.dispatchEvent(new Event('resize'));
-        }, 45);
-    }
-
-    tabsEl.querySelectorAll('.compact-panel-tab').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            if (!document.documentElement.classList.contains('app-layout-center-only')) return;
-            const p = btn.getAttribute('data-compact-panel');
-            if (p === 'stats' || p === 'game' || p === 'win') setCompactPanel(p);
-        });
-    });
-
-    if (typeof MutationObserver !== 'undefined') {
-        const mo = new MutationObserver(syncTabButtons);
-        mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-compact-panel'] });
-    }
-
-    normalizeCompactUrlPanel();
-    syncTabButtons();
-}
-
 // setupPanelLabelToggle → modules/eventHandlers.js 로 이동되었습니다.
 
 /**
- * 뷰포트 640px 이하·전체 레이아웃: 세 패널 가로 레일 스크롤 시 중앙(게임) 패널이 보이도록 맞춤.
- * 간편 레이아웃(app-layout-center-only)에서는 스크롤 보정 안 함.
+ * 뷰포트 900px 이하·전체 레이아웃: 세 패널 가로 레일 스크롤 시 중앙(게임) 패널이 보이도록 맞춤.
  */
 function setupHandheldThreePanelRail() {
     if (setupHandheldThreePanelRail._done) return;
     setupHandheldThreePanelRail._done = true;
     try {
-        const mq = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 640px)') : null;
+        const mq = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 900px)') : null;
         const main = document.querySelector('.main-container');
         const gameBox = document.querySelector('.panel-box-game');
         const dismissBtn = document.getElementById('narrowViewportDismiss');
 
         function isRailActive() {
-            if (!mq || !mq.matches) return false;
-            return !document.documentElement.classList.contains('app-layout-center-only');
+            return !!(mq && mq.matches);
         }
 
         function alignGamePanelIntoView() {
@@ -3839,7 +3735,6 @@ window.addEventListener('load', () => {
             }
             // 전체화면은 헤더 '전체화면' 버튼으로만 전환 (첫 로드 시 자동 전체화면 없음)
             setupFullscreenButton();
-            setupCompactPanelTabs();
             setupHandheldThreePanelRail();
             // showApologyBubble() — 콘솔에서 수동 호출 가능
         } catch (e) {

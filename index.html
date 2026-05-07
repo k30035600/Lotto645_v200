@@ -17,64 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260507compactFluidScale">
-    <script>
-    (function () {
-        window.__SH_COMPACT_INLINE_CSS__ = [
-            'html.app-layout-center-only body{align-items:center!important}',
-            'html.app-layout-center-only .page-header,html.app-layout-center-only .page-body{width:100%!important;max-width:640px!important;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box!important}',
-            'html.app-layout-center-only .page-header{padding-left:max(8px,env(safe-area-inset-left,0px))!important;padding-right:max(8px,env(safe-area-inset-right,0px))!important}',
-            'html.app-layout-center-only .header-content{justify-content:space-between!important;align-items:center!important;width:100%!important;max-width:100%!important;gap:8px!important;padding-left:max(4px,env(safe-area-inset-left,0px))!important;padding-right:max(4px,env(safe-area-inset-right,0px))!important}',
-            'html.app-layout-center-only .logo-area{flex:0 1 auto!important;min-width:0!important}',
-            'html.app-layout-center-only .logo-text>p{display:none!important}',
-            'html.app-layout-center-only .logo-symbol{display:none!important}',
-            'html.app-layout-center-only .header-nav{flex:0 0 auto!important;margin-left:auto!important}',
-            'html.app-layout-center-only nav.header-nav>div{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important}',
-            'html.app-layout-center-only .compact-panel-tabs{display:flex!important}',
-            'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-game,html.app-layout-center-only .panel-box-win{display:none!important}',
-            'html.app-layout-center-only:not([data-compact-panel]) .panel-box-game,html.app-layout-center-only[data-compact-panel=game] .panel-box-game{display:flex!important}',
-            'html.app-layout-center-only[data-compact-panel=stats] .panel-box-stats{display:flex!important}',
-            'html.app-layout-center-only[data-compact-panel=win] .panel-box-win{display:flex!important}',
-            'html.app-layout-center-only .main-container{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;flex:1!important;min-height:0!important;align-items:stretch!important}',
-            'html.app-layout-center-only .panel-box-stats,html.app-layout-center-only .panel-box-game,html.app-layout-center-only .panel-box-win{flex:1 1 0%!important;min-width:0!important;min-height:0!important;width:100%!important;max-width:100%!important;height:100%!important;max-height:100%!important;align-self:stretch!important}',
-            'html.app-layout-center-only #statsPanel.stats-panel,html.app-layout-center-only .panel-box-game .game-panel,html.app-layout-center-only .panel-box-win #viewNumbersPanel{flex:1 1 0%!important;min-height:0!important}',
-            'html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}',
-            'html.app-layout-center-only #mainFooter{display:none!important}',
-            'html.app-layout-center-only .game-set-row .game-row-tail{flex:1 1 auto!important;min-width:0!important}',
-            'html.app-layout-center-only #gameBox .game-balls-wrap{flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important;justify-content:space-between!important;gap:2px!important}'
-        ].join('');
-        function applyCompactPanelAttr(q) {
-            try {
-                var p = (q.get('panel') || '').toLowerCase();
-                if (p === 'stats' || p === 'game' || p === 'win') {
-                    document.documentElement.setAttribute('data-compact-panel', p);
-                    return;
-                }
-                /* 주소에 panel 없을 때 가운데(게임) 패널 기준 — sessionStorage 무시해 간편 진입 의도 명확화 */
-                document.documentElement.setAttribute('data-compact-panel', 'game');
-            } catch (e) { /* ignore */ }
-        }
-        function applyCompactFlag() {
-            try {
-                var q = new URLSearchParams(location.search || '');
-                var layout = (q.get('layout') || '').toLowerCase();
-                var m = (q.get('m') || '').trim().toLowerCase();
-                var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
-                if (!compact) return;
-                document.documentElement.classList.add('app-layout-center-only');
-                applyCompactPanelAttr(q);
-                var st = document.getElementById('app-compact-layout-fallback');
-                if (!st) {
-                    st = document.createElement('style');
-                    st.id = 'app-compact-layout-fallback';
-                    document.head.appendChild(st);
-                }
-                st.textContent = window.__SH_COMPACT_INLINE_CSS__;
-            } catch (e) { /* ignore */ }
-        }
-        applyCompactFlag();
-    })();
-    </script>
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260507mobileRail">
 </head>
 
 <body>
@@ -85,35 +28,6 @@
             document.documentElement.classList.add('narrow-viewport-notice-hidden');
         }
     } catch (e) { /* ignore */ }
-})();
-</script>
-<script>
-(function () {
-    var q = new URLSearchParams(location.search || '');
-    var layout = (q.get('layout') || '').toLowerCase();
-    var m = (q.get('m') || '').trim().toLowerCase();
-    var compact = layout === 'center' || m === '1' || m === 'true' || q.get('compact') === '1';
-    if (compact) {
-        document.documentElement.classList.add('app-layout-center-only');
-        var pUrl = (q.get('panel') || '').toLowerCase();
-        if (pUrl === 'stats' || pUrl === 'game' || pUrl === 'win') {
-            document.documentElement.setAttribute('data-compact-panel', pUrl);
-        } else {
-            document.documentElement.setAttribute('data-compact-panel', 'game');
-        }
-        var stSync = document.getElementById('app-compact-layout-fallback');
-        if (stSync && typeof window.__SH_COMPACT_INLINE_CSS__ === 'string') {
-            stSync.textContent = window.__SH_COMPACT_INLINE_CSS__;
-        }
-    }
-    document.addEventListener('DOMContentLoaded', function () {
-        var a = document.getElementById('navLayoutCompactLink');
-        var b = document.getElementById('navLayoutFullLink');
-        if (a && b) {
-            if (compact) { a.style.display = 'none'; b.style.display = ''; }
-            else { b.style.display = 'none'; }
-        }
-    });
 })();
 </script>
     <!-- 기본 UI 구조 -->
@@ -134,8 +48,6 @@
             </div>
             <nav class="header-nav" aria-label="주 메뉴">
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <a href="?layout=center&amp;panel=game" id="navLayoutCompactLink" class="header-action-btn" title="간편 화면(기본: 가운데 게임 패널): 상단 탭으로 통계·게임·당첨 전환">간편</a>
-                    <a href="/" id="navLayoutFullLink" class="header-action-btn" title="좌·우 통계·당첨 패널 포함 전체 화면" style="display:none;">전체</a>
                     <button id="helpBtn" class="header-action-btn" onclick="showHelpModal()">도움말</button>
                     <button id="exitBtn" class="header-action-btn" onclick="shutdownServer()">종료</button>
                     <button id="fullscreenBtn" class="header-action-btn" type="button" title="전체화면">전체화면</button>
@@ -152,25 +64,6 @@
             가운데(게임) 패널이 먼저 보입니다. 한 줄 아래 패널 띠를 좌우로 스크롤하면 통계·당첨 패널을 볼 수 있습니다.
             <button type="button" class="narrow-viewport-dismiss" id="narrowViewportDismiss" aria-label="안내 숨기기">숨김</button>
         </div>
-        <nav id="compactPanelTabs" class="compact-panel-tabs" role="tablist" aria-label="간편 모드 패널 선택">
-            <button type="button" role="tab" class="compact-panel-tab" id="compactTabStats" data-compact-panel="stats" aria-selected="false">통계</button>
-            <button type="button" role="tab" class="compact-panel-tab" id="compactTabGame" data-compact-panel="game" aria-selected="true">게임</button>
-            <button type="button" role="tab" class="compact-panel-tab" id="compactTabWin" data-compact-panel="win" aria-selected="false">당첨</button>
-        </nav>
-        <script>
-        (function () {
-            var r = document.documentElement;
-            if (!r.classList.contains('app-layout-center-only')) return;
-            var k = r.getAttribute('data-compact-panel') || 'game';
-            if (k !== 'stats' && k !== 'game' && k !== 'win') k = 'game';
-            document.querySelectorAll('#compactPanelTabs .compact-panel-tab').forEach(function (b) {
-                var p = b.getAttribute('data-compact-panel');
-                var sel = p === k;
-                b.classList.toggle('compact-panel-tab--active', sel);
-                b.setAttribute('aria-selected', sel ? 'true' : 'false');
-            });
-        })();
-        </script>
         <div class="main-container">
             <!-- 좌측 패널 (통계공) -->
             <div class="panel-box panel-box-stats">
@@ -230,11 +123,11 @@
                     <div class="option-filter-host">
                     <div id="optionFilterBox" style="margin-bottom:0;padding:0;border:none;border-radius:0;">
                         <div class="option-filter-row">
-                            <input type="text" id="filterAvgLow" class="option-filter-input" style="width:46px;flex-shrink:0;text-align:center;" aria-label="합계 구간 하한(편집 가능)" title="합계 min(통계 반영, 수정 가능)" />
+                            <input type="text" id="filterAvgLow" class="option-filter-input option-filter-sum" aria-label="합계 구간 하한(편집 가능)" title="합계 min(통계 반영, 수정 가능)" />
                             <span class="option-filter-tilde">~</span>
-                            <input type="text" id="filterAvgMid" readonly class="option-filter-input" style="width:46px;flex-shrink:0;text-align:center;" tabindex="-1" aria-label="합계 전체평균" />
+                            <input type="text" id="filterAvgMid" readonly class="option-filter-input option-filter-sum" tabindex="-1" aria-label="합계 전체평균" />
                             <span class="option-filter-tilde">~</span>
-                            <input type="text" id="filterAvgHigh" class="option-filter-input" style="width:46px;flex-shrink:0;text-align:center;" aria-label="합계 구간 상한(편집 가능)" title="합계 max(통계 반영, 수정 가능)" />
+                            <input type="text" id="filterAvgHigh" class="option-filter-input option-filter-sum" aria-label="합계 구간 상한(편집 가능)" title="합계 max(통계 반영, 수정 가능)" />
                             <span style="width:1px;height:18px;background:var(--color-harmony-border);flex-shrink:0;"></span>
                             <select id="filterOddEven" class="option-filter-select filter-dropdown">
                                 <option value="none">홀짝없음</option>
@@ -481,7 +374,7 @@
     <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->
-    <script src="app.js?v=20260507compactDefaultGame"></script>
+    <script src="app.js?v=20260507mobileRail"></script>
 
 </body>
 
