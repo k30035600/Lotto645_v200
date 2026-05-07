@@ -919,6 +919,20 @@ html.app-layout-center-only .game-panel .filter-dropdown {
     font-size: calc(0.66rem + var(--sh-compact-fluid) * 0.055rem);
 }
 
+/* 합계 min/평균/max 입력: 간편 구간별 글자·칸 폭 유동 (인라인 width 제거) */
+html.app-layout-center-only #optionFilterBox .option-filter-input.option-filter-sum {
+    width: calc(34px + var(--sh-compact-fluid) * 14px);
+    max-width: 100%;
+    flex-shrink: 1;
+    min-width: 0;
+    font-size: calc(0.56rem + var(--sh-compact-fluid) * 0.155rem);
+    font-variant-numeric: tabular-nums;
+}
+
+html.app-layout-center-only #optionFilterBox .option-filter-tilde {
+    font-size: calc(0.72rem + var(--sh-compact-fluid) * 0.065rem);
+}
+
 html.app-layout-center-only .game-set-row .game-mode-btn {
     width: calc(46px + var(--sh-compact-fluid) * 6px);
     font-size: calc(0.62rem + var(--sh-compact-fluid) * 0.055rem);
@@ -1557,6 +1571,11 @@ input.result-filter-text {
     border-radius: 4px;
     box-sizing: border-box;
     text-align: center;
+}
+
+.option-filter-input.option-filter-sum {
+    width: 46px;
+    flex-shrink: 0;
 }
 
 .option-filter-tilde {
@@ -2268,8 +2287,9 @@ input.result-filter-text {
 .number-grid-container {
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(9, 1fr);
-    grid-template-rows: repeat(5, 1fr);
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    align-content: start;
     gap: 6px 3px;
     place-items: center;
     flex: 1;
@@ -2400,6 +2420,7 @@ input.result-filter-text {
     max-width: min(var(--game-six-balls-width), 100%);
     gap: var(--game-six-ball-gap, 2px);
     justify-content: flex-start;
+    align-items: center;
 }
 
 .game-right-group {
@@ -2606,14 +2627,16 @@ input[type=number] {
     flex-shrink: 0;
 }
 
-/* [ShareHarmony] Global Ball Style (동행복권 컬러 대응) */
+/* [ShareHarmony] Global Ball Style — 좁은 칸에서는 max-width 100% + aspect-ratio로 타원 현상 방지 */
 .ball,
 .stat-ball {
     width: var(--ball-size);
-    height: var(--ball-size);
-    min-width: var(--ball-size);
-    min-height: var(--ball-size);
+    max-width: 100%;
+    height: auto;
     aspect-ratio: 1;
+    max-height: var(--ball-size);
+    min-width: 0;
+    min-height: 0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -2636,9 +2659,10 @@ input[type=number] {
 .ball.stat-ball--sm,
 .stat-ball.stat-ball--sm {
     width: var(--ball-size-sm);
-    height: var(--ball-size-sm);
-    min-width: var(--ball-size-sm);
-    min-height: var(--ball-size-sm);
+    max-width: 100%;
+    max-height: var(--ball-size-sm);
+    height: auto;
+    aspect-ratio: 1;
     font-size: var(--ball-font-sm);
 }
 
