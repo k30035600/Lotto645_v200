@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ShareHarmony Lotto — Note10 캡처 동일 종횡비(로컬)</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #121212;
+            font-family: system-ui, sans-serif;
+            color: #c8c8c8;
+            padding: 12px;
+        }
+        h1 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 10px;
+        }
+        .note {
+            font-size: 12px;
+            line-height: 1.5;
+            max-width: 520px;
+            margin: 0 0 12px;
+            opacity: 0.9;
+        }
+        .note code {
+            background: rgba(255,255,255,0.08);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        #frameOuter {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 100%;
+            min-height: 0;
+            overflow: auto;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        #scaled {
+            transform-origin: top center;
+            flex-shrink: 0;
+        }
+        /*
+         * KakaoTalk_20260507_133337119.jpg 물리 1080 × 2156 과 동일 종횡비.
+         * 모바일 CSS(미디어쿼리)는 「논리 폭」 기준이므로 가로를 412px로 두고
+         * 세로만 비율 맞춤: 412 * 2156 / 1080 ≈ 823
+         */
+        #appFrame {
+            display: block;
+            width: 412px;
+            height: 823px;
+            border: 2px solid #444;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h1>로컬 뷰포트 — KakaoTalk 캡처와 동일 종횡비(412 × 823 CSS px)</h1>
+    <p class="note">
+        참고 이미지 <code>KakaoTalk_20260507_133337119.jpg</code> 는 <strong>1080 × 2156</strong> 물리 픽셀입니다.
+        아래 iframe은 같은 비율로 맞추었고, 가로를 Note10 근처 논리 폭(<code>412</code>px)에 맞춰
+        간편 화면 CSS가 실제 폰과 비슷하게 적용되도록 했습니다.
+        먼저 <code>python server.py</code> 로 서버를 띄운 뒤, 이 페이지는
+        <code>http://127.0.0.1:8000/dev_note10_viewport.html</code> 로 여세요.
+    </p>
+    <div id="frameOuter">
+        <div id="scaled">
+            <iframe id="appFrame" src="/?layout=center&amp;panel=game" title="ShareHarmony Lotto"></iframe>
+        </div>
+    </div>
+    <script>
+        (function () {
+            var CSS_W = 412;
+            var CSS_H = 823;
+            var scaled = document.getElementById('scaled');
+            var outer = document.getElementById('frameOuter');
+            function fit() {
+                var pad = 20;
+                var ow = outer.clientWidth - pad;
+                var oh = outer.clientHeight - pad;
+                if (ow < 1 || oh < 1) return;
+                var sx = ow / CSS_W;
+                var sy = oh / CSS_H;
+                var s = Math.min(1, sx, sy);
+                scaled.style.transform = 'scale(' + s + ')';
+            }
+            window.addEventListener('resize', fit);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(fit);
+            }
+            fit();
+        })();
+    </script>
+</body>
+</html>
