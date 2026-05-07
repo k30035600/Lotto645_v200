@@ -16,6 +16,9 @@
     --ball-font: 0.8rem;
     --ball-size-sm: 22px;
     --ball-font-sm: 0.8rem;
+    /* 6개 선택공 한 줄 너비(게임열·저장열 정렬용). rem 고정 금지 → 시스템 글자 확대 시 가로 폭증 방지 */
+    --game-six-ball-gap: 2px;
+    --game-six-balls-width: calc(6 * var(--ball-size) + 5 * var(--game-six-ball-gap));
 
     /* 말풍선·오버레이 카드 통일 */
     --bubble-fs: 0.875rem;
@@ -794,10 +797,10 @@ html.app-layout-center-only .game-set-row .game-row-tail {
 html.app-layout-center-only #gameBox .game-balls-wrap {
     flex: 1 1 auto !important;
     min-width: 0 !important;
-    width: auto !important;
-    max-width: none !important;
-    justify-content: space-between !important;
-    gap: 2px !important;
+    width: var(--game-six-balls-width) !important;
+    max-width: min(var(--game-six-balls-width), 100%) !important;
+    justify-content: flex-start !important;
+    gap: var(--game-six-ball-gap, 2px) !important;
 }
 
 /*
@@ -875,6 +878,14 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
         padding-left: max(6px, env(safe-area-inset-left, 6px)) !important;
         padding-right: max(6px, env(safe-area-inset-right, 6px)) !important;
     }
+}
+
+/* 간편 전용: 6공·저장 목록 표 너비를 px(--ball-size)로 통일하고 그리드 열 rem 계산 재적용 */
+html.app-layout-center-only .game-panel {
+    --game-six-ball-gap: 2px;
+    --game-six-balls-width: calc(6 * var(--ball-size) + 5 * var(--game-six-ball-gap));
+    --result-saved-actions-cap-width: var(--game-six-balls-width);
+    --result-saved-right-block-width: calc(min(var(--result-saved-actions-cap-width), 38vw) + var(--result-saved-slot7-width));
 }
 
 .panel-box-stats,
@@ -1000,6 +1011,56 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
         font-size: 0.68rem;
         padding-left: 3px;
         padding-right: 3px;
+    }
+}
+
+/*
+ * 간편·좁은 게임 열(Note10 간편모드 등): 좌(1~45) + 우(G1~5) 가로 2열이 동시에 들어가지 못할 때
+ * 선택공을 위·게임행을 아래로 스택해 우측 잘림을 줄임.
+ */
+@container game-col (max-width: 400px) {
+    html.app-layout-center-only #gridGameRow {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        min-height: 0;
+    }
+
+    html.app-layout-center-only #gridGameRow > #numberGridSection,
+    html.app-layout-center-only #gridGameRow > #gameBox {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    html.app-layout-center-only .number-grid-container {
+        gap: 4px 2px;
+    }
+
+    html.app-layout-center-only #centerNavBar {
+        flex-wrap: wrap;
+        row-gap: 4px;
+    }
+
+    html.app-layout-center-only #centerNavBar .center-nav-link {
+        flex: 1 1 calc(33.333% - 4px);
+        min-width: 0;
+        box-sizing: border-box;
+        font-size: 0.72rem;
+        white-space: normal;
+        line-height: 1.2;
+        padding: 6px 4px;
+    }
+
+    html.app-layout-center-only .game-panel .option-filter-row {
+        gap: 4px 5px;
+    }
+
+    html.app-layout-center-only .game-panel .filter-dropdown {
+        min-width: 0;
+        flex: 1 1 calc(50% - 6px);
+        max-width: none;
     }
 }
 
@@ -2257,12 +2318,11 @@ input.result-filter-text {
     box-sizing: border-box;
 }
 
-/* 게임공 영역: 6공이 22px×6 + gap 2px×5 = 142px(8.875rem)에 정확히 맞도록.
-   space-between로 양끝 정렬되지 않게 flex-start로 고정 → 6번째 공이 잘리지 않음 */
+/* 게임공 영역: 6공 너비는 --ball-size(px) 기준(간편·큰글자에서 rem만 커져 잘리는 현상 방지) */
 #gameBox .game-balls-wrap {
-    width: 8.875rem;
-    max-width: 8.875rem;
-    gap: 2px;
+    width: var(--game-six-balls-width);
+    max-width: min(var(--game-six-balls-width), 100%);
+    gap: var(--game-six-ball-gap, 2px);
     justify-content: flex-start;
 }
 
