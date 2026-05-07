@@ -1888,7 +1888,7 @@ function renderStatsList() {
         statInfo.style.display = 'flex';
         statInfo.style.alignItems = 'center';
         statInfo.style.gap = '8px';
-        statInfo.style.fontSize = '0.9rem';
+        statInfo.style.fontSize = '0.9em';
 
         const count = document.createElement('span');
         count.style.color = SHAREHARMONY_PALETTE.textPrimary;
@@ -2305,7 +2305,7 @@ function createRoundLineElement(round) {
     roundLine.style.boxSizing = 'border-box';
     const roundInfo = document.createElement('span');
     roundInfo.style.fontWeight = '400';
-    roundInfo.style.fontSize = '0.85rem';
+    roundInfo.style.fontSize = '0.85em';
     roundInfo.style.minWidth = '100px';
     roundInfo.style.color = SHAREHARMONY_PALETTE.textPrimary;
     roundInfo.style.opacity = '1';
@@ -2351,7 +2351,7 @@ function createRoundLineElement(round) {
     const sumDisplay = document.createElement('span');
     sumDisplay.className = 'round-sum-display';
     sumDisplay.textContent = `[ ${sum.toString().padStart(3, '0')} ] `;
-    sumDisplay.style.fontSize = '0.85rem';
+    sumDisplay.style.fontSize = '0.85em';
     sumDisplay.style.color = SHAREHARMONY_PALETTE.error;
     sumDisplay.style.fontWeight = 'bold';
     const dateSpan = document.createElement('span');
@@ -2359,7 +2359,7 @@ function createRoundLineElement(round) {
     dateSpan.textContent = formattedDate;
     const minMaxSpan = document.createElement('span');
     minMaxSpan.className = 'round-minmax-display';
-    minMaxSpan.style.fontSize = '0.78rem';
+    minMaxSpan.style.fontSize = '0.78em';
     minMaxSpan.style.color = SHAREHARMONY_PALETTE.textPrimary;
     minMaxSpan.style.fontFamily = "'Courier New', Courier, monospace";
     minMaxSpan.style.whiteSpace = 'nowrap';

@@ -847,9 +847,164 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
     container-name: win-panel;
 }
 
+.panel-box-stats {
+    container-type: inline-size;
+    container-name: stats-col;
+}
+
+.panel-box-game {
+    container-type: inline-size;
+    container-name: game-col;
+}
+
+/* 패널 열 폭이 좁을 때: 해당 패널 내부에서만 글자·번호공·여백 축소(뷰포트와 독립) */
+@container stats-col (max-width: 400px) {
+    #statsPanel {
+        font-size: 0.94rem;
+        --ball-size: 20px;
+        --ball-font: 0.74rem;
+        --ball-size-sm: 19px;
+        --ball-font-sm: 0.71rem;
+    }
+
+    #statsPanel .stats-sort {
+        gap: 4px;
+    }
+
+    #statsPanel #dateRangeBox {
+        padding: 3px 4px;
+    }
+
+    #statsPanel .stats-sort button,
+    #statsPanel .stats-sort .seq-filter-select {
+        font-size: 0.68rem;
+        height: 28px;
+        padding: 2px 5px;
+    }
+
+    #statsPanel .stats-sort button {
+        min-height: 0;
+    }
+
+    #statsList .stat-line {
+        padding: 0 5px !important;
+        gap: 6px !important;
+    }
+}
+
+@container stats-col (max-width: 300px) {
+    #statsPanel {
+        font-size: 0.875rem;
+        --ball-size: 18px;
+        --ball-font: 0.68rem;
+        --ball-size-sm: 18px;
+        --ball-font-sm: 0.66rem;
+    }
+
+    #statsPanel .stats-sort button,
+    #statsPanel .stats-sort .seq-filter-select {
+        font-size: 0.62rem;
+        height: 26px;
+    }
+
+    #statsPanel #dateRangeBox .range-label {
+        font-size: 0.7rem;
+    }
+
+    #statsList .stat-line {
+        padding: 0 4px !important;
+        gap: 4px !important;
+        height: auto !important;
+        min-height: 22px !important;
+    }
+}
+
+@container game-col (max-width: 420px) {
+    .game-panel {
+        font-size: 0.95rem;
+        --ball-size: 20px;
+        --ball-font: 0.74rem;
+        --ball-size-sm: 18px;
+        --ball-font-sm: 0.7rem;
+    }
+
+    .panel-box-game .game-panel h2 {
+        font-size: 1.05rem;
+        padding: 11px 14px;
+    }
+
+    .game-panel #resultContainer .result-saved-detail {
+        font-size: clamp(0.41rem, 3.9cqi, 0.55rem);
+        letter-spacing: -0.02em;
+    }
+}
+
+@container game-col (max-width: 320px) {
+    .game-panel {
+        font-size: 0.9rem;
+        --ball-size: 18px;
+        --ball-font: 0.68rem;
+        --ball-size-sm: 17px;
+        --ball-font-sm: 0.65rem;
+    }
+
+    .panel-box-game .game-panel h2 {
+        font-size: 0.98rem;
+        padding: 9px 10px;
+    }
+
+    #resultScrollArea.result-scroll-area .result-summary-box--bar .result-summary-action-slot button {
+        font-size: 0.68rem;
+        padding-left: 3px;
+        padding-right: 3px;
+    }
+}
+
 @container win-panel (max-width: 400px) {
     .round-minmax-display {
         display: none !important;
+    }
+
+    #viewNumbersPanel {
+        font-size: 0.94rem;
+        --ball-size: 20px;
+        --ball-font: 0.74rem;
+        --ball-size-sm: 19px;
+        --ball-font-sm: 0.71rem;
+    }
+
+    .panel-box-win #viewNumbersPanel h2 {
+        font-size: 1.05rem;
+        padding: 11px 14px;
+    }
+
+    .view-numbers-inline .round-number-line > span:first-of-type {
+        min-width: 72px !important;
+    }
+
+    #viewNumbersList .round-number-line,
+    .view-numbers-inline .round-number-line {
+        padding: 0 5px;
+        gap: 5px;
+    }
+}
+
+@container win-panel (max-width: 320px) {
+    #viewNumbersPanel {
+        font-size: 0.87rem;
+        --ball-size: 18px;
+        --ball-font: 0.68rem;
+        --ball-size-sm: 17px;
+        --ball-font-sm: 0.65rem;
+    }
+
+    .panel-box-win #viewNumbersPanel h2 {
+        font-size: 0.98rem;
+        padding: 9px 10px;
+    }
+
+    .view-numbers-inline .round-number-line > span:first-of-type {
+        min-width: 58px !important;
     }
 }
 
