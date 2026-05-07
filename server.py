@@ -1688,6 +1688,10 @@ def api_post_unknown(api_unknown):
 def index():
     resp = send_from_directory(BASE_DIR, 'index.html')
     resp.headers['Content-Type'] = 'text/html; charset=utf-8'
+    # HTML도 캐시하면 배포 후에도 브라우저·인앱 브라우저가 예전 화면(예: 제거된 당첨조건 블록)을 보여줄 수 있음
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
     return resp
 
 
