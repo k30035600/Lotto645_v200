@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260510compactNote10Portrait">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260510removeCenterWinStructure">
     <script>
     (function () {
         window.__SH_COMPACT_INLINE_CSS__ = [
@@ -40,7 +40,6 @@
             'html.app-layout-center-only #statsPanel.stats-panel,html.app-layout-center-only .panel-box-game .game-panel,html.app-layout-center-only .panel-box-win #viewNumbersPanel{flex:1 1 0%!important;min-height:0!important}',
             'html.app-layout-center-only #bottomArea,html.app-layout-center-only #bottomAreaWin,html.app-layout-center-only #bottomAreaNumber{display:none!important}',
             'html.app-layout-center-only #mainFooter{display:none!important}',
-            'html.app-layout-center-only #winStructureBox{display:none!important}',
             'html.app-layout-center-only .game-set-row .game-row-tail{flex:1 1 auto!important;min-width:0!important}',
             'html.app-layout-center-only #gameBox .game-balls-wrap{flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important;justify-content:space-between!important;gap:2px!important}'
         ].join('');
@@ -353,58 +352,6 @@
                         </div>
                         </div>
                     </div>
-
-                    <!-- 당첨구조 (가운데 패널 맨 아래) -->
-                    <div id="winStructureBox" class="stats-box ui-box win-structure-box zone-bottom" style="display:none;margin-top:0;overflow:hidden;font-size:0.7rem;line-height:1.4;">
-                        <table class="win-prize-table">
-                            <colgroup>
-                                <col style="width:8%;">
-                                <col style="width:24%;">
-                                <col style="width:42%;">
-                                <col style="width:26%;">
-                            </colgroup>
-                            <thead>
-                                <tr>
-                                    <th>등위</th>
-                                    <th>당첨조건</th>
-                                    <th>당첨금</th>
-                                    <th>당첨확률</th>
-                                </tr>
-                            </thead>
-                            <tbody style="color:var(--color-text-primary);">
-                                <tr style="border-bottom:1px solid var(--color-border);">
-                                    <td style="padding:4px 8px;font-weight:700;text-align:center;">1등</td>
-                                    <td style="padding:4px 8px;text-align:left;">6개 번호 일치</td>
-                                    <td style="padding:4px 8px;text-align:right;">총 당첨금 중 4,5등 제외 75%</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--color-expense);">1/8,145,060</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid var(--color-border);">
-                                    <td style="padding:4px 8px;font-weight:700;text-align:center;">2등</td>
-                                    <td style="padding:4px 8px;text-align:left;">5개 + 보너스 일치</td>
-                                    <td style="padding:4px 8px;text-align:right;">총 당첨금 중 4,5등 제외 12.5%</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--color-expense);">1/1,357,510</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid var(--color-border);">
-                                    <td style="padding:4px 8px;font-weight:700;text-align:center;">3등</td>
-                                    <td style="padding:4px 8px;text-align:left;">5개 번호 일치</td>
-                                    <td style="padding:4px 8px;text-align:right;">총 당첨금 중 4,5등 제외 12.5%</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--color-expense);">1/35,724</td>
-                                </tr>
-                                <tr style="border-bottom:1px solid var(--color-border);">
-                                    <td style="padding:4px 8px;font-weight:700;text-align:center;">4등</td>
-                                    <td style="padding:4px 8px;text-align:left;">4개 번호 일치</td>
-                                    <td style="padding:4px 8px;text-align:right;">50,000원</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--color-expense);">1/733</td>
-                                </tr>
-                                <tr>
-                                    <td style="padding:4px 8px;font-weight:700;text-align:center;">5등</td>
-                                    <td style="padding:4px 8px;text-align:left;">3개 번호 일치</td>
-                                    <td style="padding:4px 8px;text-align:right;">5,000원</td>
-                                    <td style="padding:4px 8px;text-align:right;font-weight:700;color:var(--color-expense);">1/45</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                     </div>
                 </div>
             </div>
@@ -530,7 +477,7 @@
     <script src="modules/aiChat.js"></script>
     <script src="modules/filters.js"></script>
     <script src="modules/harmonyPool.js"></script>
-    <script src="modules/renderer.js?v=20260509compactHideWinStructure"></script>
+    <script src="modules/renderer.js?v=20260510removeCenterWinStructure"></script>
     <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->

@@ -2139,8 +2139,6 @@ function updateStatsByDateRange() {
         renderNumberGrid();
         renderViewNumbersList([]);
         updateRoundRangeDisplay();
-        const wsBox0 = document.getElementById('winStructureBox');
-        if (wsBox0) wsBox0.style.display = 'none';
         if (typeof applySumMeanBandToFilterInputs === 'function') applySumMeanBandToFilterInputs([]);
         return;
     }
@@ -2185,15 +2183,6 @@ function updateStatsByDateRange() {
     renderNumberGrid();
     renderViewNumbersList(filteredData);
     updateRoundRangeDisplay();
-
-    const wsBox = document.getElementById('winStructureBox');
-    if (wsBox) {
-        if (typeof isAppLayoutCenterOnly === 'function' && isAppLayoutCenterOnly()) {
-            wsBox.style.display = 'none';
-        } else {
-            wsBox.style.display = '';
-        }
-    }
 
     // 옵션필터: 조회한 회차 구간(시작~종료) 통계 반영 (100회 슬라이스는 AI추천 생성 시에만 적용)
     extractAndApplyFilters(filteredData);

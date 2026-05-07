@@ -210,45 +210,11 @@ html {
     background: var(--color-accent);
 }
 
-/* 공통 UI 박스 (필터/네비/당첨구조 등 영역 감싸기) */
+/* 공통 UI 박스 (필터/네비 등 영역 감싸기) */
 .ui-box {
     border: 1px solid var(--color-border-dark);
     border-radius: var(--radius-md);
     background: var(--color-box-bg);
-}
-
-/* 당첨금·당첨확률 테이블 박스 — 바깥 테두리·그림자 없음 */
-.win-structure-box {
-    padding: 8px;
-    box-shadow: none;
-    border: none !important;
-}
-
-/* 당첨구조 표: 열 머리글 폰트(크기·색) 앱 전역 테이블 헤더와 통일 */
-.win-prize-table {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-}
-.win-prize-table thead tr {
-    background: var(--color-table-header);
-    color: var(--color-table-header-fg);
-}
-.win-prize-table thead th {
-    padding: 6px 8px;
-    font-size: var(--table-header-font-size);
-    font-weight: var(--table-header-font-weight);
-    color: var(--color-table-header-fg);
-}
-.win-prize-table thead th:nth-child(1) {
-    text-align: center;
-}
-.win-prize-table thead th:nth-child(2) {
-    text-align: left;
-}
-.win-prize-table thead th:nth-child(3),
-.win-prize-table thead th:nth-child(4) {
-    text-align: right;
 }
 
 body {
@@ -545,7 +511,7 @@ a.header-action-btn {
     overflow-y: hidden;
 }
 
-/* 가운데 패널 내부 박스 너비·패딩 통일 (네비·필터·선택공·저장공·당첨구조 등) */
+/* 가운데 패널 내부 박스 너비·패딩 통일 (네비·필터·선택공·저장공 등) */
 .game-panel .panel-inner > * {
     width: 100%;
     max-width: 100%;
@@ -807,11 +773,6 @@ html.app-layout-center-only #mainFooter {
     display: none !important;
 }
 
-/* 간편 모드: 가운데 패널 하단 당첨조건(당첨금 구조표) 미표시 */
-html.app-layout-center-only #winStructureBox {
-    display: none !important;
-}
-
 html.app-layout-center-only .page-body {
     flex: 1;
     min-height: 0;
@@ -910,8 +871,7 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
     }
 
     html.app-layout-center-only .game-panel .zone-top,
-    html.app-layout-center-only .game-panel .zone-mid,
-    html.app-layout-center-only .game-panel .zone-bottom {
+    html.app-layout-center-only .game-panel .zone-mid {
         padding-left: max(6px, env(safe-area-inset-left, 6px)) !important;
         padding-right: max(6px, env(safe-area-inset-right, 6px)) !important;
     }
@@ -2108,10 +2068,9 @@ input.result-filter-text {
     padding: 6px 8px;
 }
 
-/* ── 중앙 패널 3단 영역 구분 (상/중/하) ── */
+/* ── 중앙 패널 영역 구분 (상 / 중 저장공 등) ── */
 .zone-top,
-.zone-mid,
-.zone-bottom {
+.zone-mid {
     border: 1px solid rgba(55, 71, 79, 0.35) !important;
     border-radius: var(--radius-md);
     margin-bottom: 4px;
@@ -2124,15 +2083,6 @@ input.result-filter-text {
 
 .zone-mid {
     background: rgba(55, 71, 79, 0.07) !important;
-}
-
-.zone-bottom {
-    background: rgba(55, 71, 79, 0.12) !important;
-}
-
-/* 하(당첨조건) 테이블 행 배경을 바탕색과 동일하게 */
-.zone-bottom table tbody tr {
-    background: transparent !important;
 }
 
 .stats-box h2 {
