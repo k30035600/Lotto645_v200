@@ -2187,7 +2187,13 @@ function updateStatsByDateRange() {
     updateRoundRangeDisplay();
 
     const wsBox = document.getElementById('winStructureBox');
-    if (wsBox) wsBox.style.display = '';
+    if (wsBox) {
+        if (typeof isAppLayoutCenterOnly === 'function' && isAppLayoutCenterOnly()) {
+            wsBox.style.display = 'none';
+        } else {
+            wsBox.style.display = '';
+        }
+    }
 
     // 옵션필터: 조회한 회차 구간(시작~종료) 통계 반영 (100회 슬라이스는 AI추천 생성 시에만 적용)
     extractAndApplyFilters(filteredData);

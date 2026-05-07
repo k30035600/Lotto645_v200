@@ -640,7 +640,7 @@ html.app-layout-center-only .narrow-viewport-service-notice {
  * 간편 레이아웃 (?layout=center | ?m=1 | center.html)
  * 상단 탭으로 통계 / 게임 / 당첨 패널 전환 (data-compact-panel: stats | game | win, 생략 시 게임)
  * 하단 차트·푸터는 숨김 — DOM은 유지 (init 스크립트 호환)
- * 가용폭: 헤더+본문 max-width 640px
+ * 가용폭: 헤더+본문 max-width 640px — 좁은 세로폰(Note10 등, ~420px 이하)은 아래 미디어쿼리로 추가 최적화
  */
 .compact-panel-tabs {
     display: none;
@@ -807,6 +807,11 @@ html.app-layout-center-only #mainFooter {
     display: none !important;
 }
 
+/* 간편 모드: 가운데 패널 하단 당첨조건(당첨금 구조표) 미표시 */
+html.app-layout-center-only #winStructureBox {
+    display: none !important;
+}
+
 html.app-layout-center-only .page-body {
     flex: 1;
     min-height: 0;
@@ -832,6 +837,84 @@ html.app-layout-center-only #gameBox .game-balls-wrap {
     max-width: none !important;
     justify-content: space-between !important;
     gap: 2px !important;
+}
+
+/*
+ * 간편 모드 + 좁은 세로폰(Galaxy Note10 등: 논리 뷰폭 약 360px 전후, FHD+÷기기 스케일)
+ * — 헤더·탭 터치 영역·여백·번호공 변수를 세로 한 손 조작에 맞춤
+ */
+@media (max-width: 420px) {
+    html.app-layout-center-only .page-header {
+        height: auto;
+        min-height: 52px;
+        padding-top: max(6px, env(safe-area-inset-top, 0px));
+        padding-bottom: 8px;
+    }
+
+    html.app-layout-center-only .header-content .logo-text h1 {
+        font-size: clamp(0.92rem, 4.85vw, 1.22rem) !important;
+        line-height: 1.18 !important;
+        letter-spacing: -0.02em !important;
+    }
+
+    html.app-layout-center-only .logo-area {
+        margin-right: 6px;
+    }
+
+    html.app-layout-center-only .header-action-btn {
+        width: auto;
+        min-width: 50px;
+        height: 36px;
+        font-size: 0.74rem;
+        padding: 0 7px;
+    }
+
+    html.app-layout-center-only .page-body {
+        padding-left: max(6px, env(safe-area-inset-left, 0px));
+        padding-right: max(6px, env(safe-area-inset-right, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html.app-layout-center-only nav.header-nav > div {
+        gap: 6px !important;
+    }
+
+    html.app-layout-center-only .compact-panel-tabs {
+        padding: 6px max(8px, env(safe-area-inset-left, 8px)) 5px max(8px, env(safe-area-inset-right, 8px));
+        gap: 5px;
+    }
+
+    html.app-layout-center-only .compact-panel-tab {
+        padding: 10px 4px;
+        min-height: 44px;
+        font-size: 0.76rem;
+        box-sizing: border-box;
+        line-height: 1.25;
+    }
+
+    html.app-layout-center-only .stats-panel .panel-inner > *,
+    html.app-layout-center-only .game-panel .panel-inner > *,
+    html.app-layout-center-only #viewNumbersPanel .panel-inner > * {
+        padding-left: max(6px, env(safe-area-inset-left, 0px));
+        padding-right: max(6px, env(safe-area-inset-right, 0px));
+    }
+
+    /* 단일 패널이 전체 폭을 씀 → 살짝 작은 공으로 가로 균형(게임/통계/당첨 동일 변수) */
+    html.app-layout-center-only .game-panel,
+    html.app-layout-center-only #statsPanel,
+    html.app-layout-center-only #viewNumbersPanel {
+        --ball-size: 19px;
+        --ball-font: 0.72rem;
+        --ball-size-sm: 17px;
+        --ball-font-sm: 0.66rem;
+    }
+
+    html.app-layout-center-only .game-panel .zone-top,
+    html.app-layout-center-only .game-panel .zone-mid,
+    html.app-layout-center-only .game-panel .zone-bottom {
+        padding-left: max(6px, env(safe-area-inset-left, 6px)) !important;
+        padding-right: max(6px, env(safe-area-inset-right, 6px)) !important;
+    }
 }
 
 .panel-box-stats,
