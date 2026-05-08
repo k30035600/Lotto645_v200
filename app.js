@@ -1241,22 +1241,6 @@ async function initializeApp() {
             window.onAppInitialized();
         }
 
-        // 서버 시작 시간 표시
-        fetch('/api/health')
-            .then(res => res.json())
-            .then(data => {
-                const titleEl = document.querySelector('h1');
-                if (titleEl && data.startTime) {
-                    const timeSpan = document.createElement('span');
-                    timeSpan.style.fontSize = '0.65rem';
-                    timeSpan.style.fontWeight = 'bold';
-                    timeSpan.style.marginLeft = '12px';
-                    timeSpan.style.color = SHAREHARMONY_PALETTE.white;
-                    timeSpan.textContent = ` (로딩시간: ${data.startTime})`;
-                    titleEl.appendChild(timeSpan);
-                }
-            })
-            .catch(err => { /* Server time fetch failed */ });
     } catch (error) {
         alert('애플리케이션 초기화 중 오류가 발생했습니다: ' + error.message);
     }

@@ -541,6 +541,11 @@ a.header-action-btn {
         padding-top: max(8px, env(safe-area-inset-top, 0px));
     }
 
+    /* 핸드폰: 헤더 좌측 그래픽 로고(SH 사각형) 숨김 — 제목·부제만 표시 */
+    .logo-symbol {
+        display: none !important;
+    }
+
     .page-footer {
         padding-bottom: env(safe-area-inset-bottom, 0px);
         padding-left: max(12px, env(safe-area-inset-left, 0px));
@@ -552,9 +557,19 @@ a.header-action-btn {
         overflow-y: visible;
     }
 
+    /* 세로 패널 스크롤 + 가로 레일(.main-container)까지 손가락 제스처가 전달되도록 pan-x 허용 */
     .panel-inner {
         -webkit-overflow-scrolling: touch;
-        touch-action: pan-y pinch-zoom;
+        touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    .main-container > .panel-box {
+        touch-action: pan-x pan-y pinch-zoom;
+    }
+
+    #statsList,
+    #viewNumbersList {
+        touch-action: pan-x pan-y pinch-zoom;
     }
 
     /* 하단 차트 패널(고정)·푸터 겹침 완화(홈 인디케이터) */
