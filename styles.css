@@ -503,56 +503,6 @@ a.header-action-btn {
     padding-right: 8px;
 }
 
-/* ============================================================
-   뷰포트 640px 이하: 패널 최소 너비 640px + 가로 스크롤 레일
-   ============================================================ */
-.narrow-viewport-service-notice {
-    display: none;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 8px 12px;
-    padding: 8px 10px;
-    margin: 0 0 8px 0;
-    font-size: 0.78rem;
-    line-height: 1.45;
-    color: #5d4037;
-    background: linear-gradient(90deg, #fff8e1 0%, #ffecb3 100%);
-    border: 1px solid #ffa000;
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
-    box-sizing: border-box;
-}
-
-.narrow-viewport-service-notice strong {
-    color: #e65100;
-    white-space: nowrap;
-}
-
-.narrow-viewport-service-notice .narrow-viewport-hint-sep {
-    display: none;
-}
-
-.narrow-viewport-dismiss {
-    margin-left: auto;
-    flex-shrink: 0;
-    padding: 4px 10px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--color-primary);
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid var(--color-harmony-border);
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.narrow-viewport-dismiss:hover {
-    background: #fff;
-}
-
-html.narrow-viewport-notice-hidden .narrow-viewport-service-notice {
-    display: none !important;
-}
-
 @media (max-width: 900px) {
     /* iOS Safari: 입력란 폰트가 너무 작으면 포커스 시 페이지가 확대됨 */
     input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="hidden"]):not([type="range"]):not([type="color"]):not([type="image"]),
@@ -612,10 +562,6 @@ html.narrow-viewport-notice-hidden .narrow-viewport-service-notice {
     #bottomAreaWin,
     #bottomAreaNumber {
         bottom: calc(48px + env(safe-area-inset-bottom, 0px));
-    }
-
-    html:not(.narrow-viewport-notice-hidden) .narrow-viewport-service-notice {
-        display: flex;
     }
 
     .main-container {
@@ -3490,6 +3436,14 @@ a.center-nav-link.lucky-nav-busy {
     text-align: right;
 }
 
+/* AI 분석·BoB 분석 전체 오버레이: 배경은 포인터 통과 → 모바일에서 패널 뒤 .main-container 가로 스크롤(스와이프) 가능 */
+.golden-analysis-overlay {
+    pointer-events: none;
+}
+.golden-analysis-overlay .golden-analysis-panel {
+    pointer-events: auto;
+}
+
 /* 행운번호 AI 분석 오버레이 패널 */
 .golden-analysis-panel {
     position: relative;
@@ -3574,6 +3528,27 @@ a.center-nav-link.lucky-nav-busy {
     align-items: center;
     gap: 6px;
     min-width: 0;
+}
+/* GAME 행: 6개 공 한 줄(줄바꿈 없음), 폭 부족 시 가로 스크롤 */
+.golden-analysis-panel .golden-game-balls-wrap {
+    flex-wrap: nowrap !important;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 2px 3px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y pinch-zoom;
+    scrollbar-width: thin;
+}
+.golden-analysis-panel .golden-game-balls-wrap .stat-ball.stat-ball--sm {
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    min-height: 20px !important;
+    font-size: 0.65rem !important;
+    margin: 0 1px !important;
+    flex-shrink: 0;
 }
 .golden-analysis-panel .golden-game-meta {
     display: flex;

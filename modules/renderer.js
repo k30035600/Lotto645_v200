@@ -1272,10 +1272,6 @@ function showGoldenAiAnalysis() {
         });
     });
 
-    overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) overlay.remove();
-    });
-
     AppState._luckyStatTrustContext = null;
 }
 
@@ -1334,9 +1330,6 @@ function showPerfectBobAnalysis(totalCollected, topFive) {
     document.body.appendChild(overlay);
     overlay.querySelectorAll('.stat-filter-trust-tip-host').forEach(function (el) {
         if (typeof applyStatFilterTrustTooltip === 'function') applyStatFilterTrustTooltip(el);
-    });
-    overlay.addEventListener('click', function (e) {
-        if (e.target === overlay) overlay.remove();
     });
     const panel = overlay.querySelector('.golden-analysis-panel');
     if (panel && typeof applySavedBubblePosition === 'function') {

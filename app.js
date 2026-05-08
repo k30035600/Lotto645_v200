@@ -3652,7 +3652,6 @@ function setupHandheldThreePanelRail() {
         const mq = typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 900px)') : null;
         const main = document.querySelector('.main-container');
         const gameBox = document.querySelector('.panel-box-game');
-        const dismissBtn = document.getElementById('narrowViewportDismiss');
 
         function isRailActive() {
             return !!(mq && mq.matches);
@@ -3688,17 +3687,6 @@ function setupHandheldThreePanelRail() {
         else if (mq && typeof mq.addListener === 'function') mq.addListener(onMq);
         window.addEventListener('resize', scheduleAlign);
         window.addEventListener('orientationchange', scheduleAlign);
-
-        if (dismissBtn) {
-            dismissBtn.addEventListener('click', function () {
-                document.documentElement.classList.add('narrow-viewport-notice-hidden');
-                try {
-                    sessionStorage.setItem('narrowViewportNoticeHidden', '1');
-                } catch (e) {
-                    /* ignore */
-                }
-            });
-        }
 
         if (typeof ResizeObserver === 'function' && main && gameBox) {
             try {

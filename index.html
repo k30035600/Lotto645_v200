@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.25, maximum-scale=5, viewport-fit=cover">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -17,19 +17,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260507mobileRail">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260508zoomOut">
 </head>
 
 <body>
-<script>
-(function () {
-    try {
-        if (sessionStorage.getItem('narrowViewportNoticeHidden') === '1') {
-            document.documentElement.classList.add('narrow-viewport-notice-hidden');
-        }
-    } catch (e) { /* ignore */ }
-})();
-</script>
     <!-- 기본 UI 구조 -->
     <header class="page-header">
         <div class="header-content">
@@ -57,13 +48,6 @@
     </header>
 
     <main class="page-body">
-        <div id="narrowViewportNotice" class="narrow-viewport-service-notice" role="alert" aria-live="polite">
-            <strong>표시 안내:</strong>
-            화면 너비가 640px 이하입니다. 패널 최소 폭 기준상 권장 화면이 아니며, 이 너비에서는 정상적인 서비스 제공이 어렵습니다.
-            <span class="narrow-viewport-hint-sep"></span>
-            가운데(게임) 패널이 먼저 보입니다. 한 줄 아래 패널 띠를 좌우로 스크롤하면 통계·당첨 패널을 볼 수 있습니다.
-            <button type="button" class="narrow-viewport-dismiss" id="narrowViewportDismiss" aria-label="안내 숨기기">숨김</button>
-        </div>
         <div class="main-container">
             <!-- 좌측 패널 (통계공) -->
             <div class="panel-box panel-box-stats">
@@ -370,11 +354,11 @@
     <script src="modules/aiChat.js"></script>
     <script src="modules/filters.js"></script>
     <script src="modules/harmonyPool.js"></script>
-    <script src="modules/renderer.js?v=20260510removeCenterWinStructure"></script>
+    <script src="modules/renderer.js?v=20260508goldenModal"></script>
     <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->
-    <script src="app.js?v=20260507mobileRail"></script>
+    <script src="app.js?v=20260508noNarrowNotice"></script>
 
 </body>
 
