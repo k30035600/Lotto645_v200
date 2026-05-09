@@ -854,9 +854,9 @@ a.header-action-btn {
         font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
     }
 
+    /* 평균값(가운데 칸) 등: 폰트만 축소, 입력칸 너비는 기본(40px) 유지 */
     .game-panel .zone-top .option-filter-sum {
-        width: clamp(30px, 14cqi, 46px);
-        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
+        font-size: clamp(0.58rem, 5cqi, 0.66rem);
         font-weight: 600;
     }
 
@@ -1329,10 +1329,11 @@ input.result-filter-text {
 }
 
 .game-panel .zone-top .option-filter-sum {
-    flex-shrink: 1;
-    min-width: 0;
-    width: clamp(24px, 11cqi, 46px);
-    font-size: 0.72rem;
+    flex-shrink: 0;
+    min-width: 40px;
+    width: 40px;
+    box-sizing: border-box;
+    font-size: 0.64rem;
     font-weight: 600;
 }
 

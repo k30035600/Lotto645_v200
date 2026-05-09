@@ -299,18 +299,139 @@ async function loadLotto645Data(basePath = '', opts) {
 }
 
 /**
+ * Lotto023 행에서 세트·게임 번호 (서버 xlsx 처리와 동일한 기본값 규칙)
+ * @param {object} g - normalizeLottoData 한 행
+ */
+function lotto023ResolvedSetGameLocal(g) {
+    const sRaw = g.set !== undefined && g.set !== null && g.set !== '' ? g.set : g['세트'];
+    const gRaw = g.game !== undefined && g.game !== null && g.game !== '' ? g.game : g['게임'];
+    const setNum = parseInt(String(sRaw != null ? sRaw : ''), 10);
+    const gameNum = parseInt(String(gRaw != null ? gRaw : ''), 10);
+    return {
+        setNum: !Number.isNaN(setNum) && setNum > 0 ? setNum : 1,
+        gameNum: !Number.isNaN(gameNum) && gameNum > 0 ? gameNum : 1
+    };
+}
+
+/**
+ * 서버 delete-lotto023 와 동일: 회차·세트·게임 문자열 일치 시 삭제 대상
+ */
+function lotto023DeleteItemMatches(item, g) {
+    const r = String(g.round ?? g['회차'] ?? '');
+    if (String(item.round) !== r) return false;
+    const sRaw = g.set !== undefined && g.set !== null && g.set !== '' ? g.set : g['세트'];
+    const gRaw = g.game !== undefined && g.game !== null && g.game !== '' ? g.game : g['게임'];
+    const setVal = sRaw === undefined || sRaw === null ? '' : String(sRaw);
+    const gameVal = gRaw === undefined || gRaw === null ? '' : String(gRaw);
+    if (String(item.game) !== gameVal) return false;
+    if (String(item.set ?? '') !== setVal) return false;
+    return true;
+}
+
+/**
+ * Lotto023: localStorage 에서 항목 제거 후 저장 (API 미사용)
+ * @param {Array<{round: string, set?: string, game: string}>} itemsToDelete
+ */
+async function removeLotto023ItemsFromLocal(itemsToDelete) {
+    if (!itemsToDelete || itemsToDelete.length === 0) return;
+    const existing = await loadLotto023Data('');
+    const filtered = existing.filter(function (g) {
+        return !itemsToDelete.some(function (item) { return lotto023DeleteItemMatches(item, g); });
+    });
+    saveToCache(CACHE_KEYS.LOTTO023, filtered);
+}
+
+/**
+ * Lotto023: 신규 게임을 로컬 목록에 붙임 (세트/게임 규칙은 서버 save-lotto023 와 동일)
+ * @param {Array<object>} gamesPayload - saveGamesToCSV 가 만든 한글 키 객체 배열
+ */
+async function appendLotto023GamesToLocal(gamesPayload) {
+    if (!gamesPayload || gamesPayload.length === 0) return;
+    const list = JSON.parse(JSON.stringify(await loadLotto023Data('')));
+
+    for (let gi = 0; gi < gamesPayload.length; gi++) {
+        const g = gamesPayload[gi];
+        const rawRound = g['회차'];
+        if (rawRound === undefined || rawRound === null || rawRound === '') continue;
+        let target_round = parseInt(String(rawRound), 10);
+        if (Number.isNaN(target_round)) continue;
+
+        const round_data = list.filter(function (x) {
+            const xr = Number(x.round);
+            return !Number.isNaN(xr) && xr === target_round;
+        });
+
+        let next_set, next_game;
+        if (round_data.length === 0) {
+            next_set = 1;
+            next_game = 1;
+        } else {
+            round_data.sort(function (x, y) {
+                const sx = lotto023ResolvedSetGameLocal(x);
+                const sy = lotto023ResolvedSetGameLocal(y);
+                if (sx.setNum !== sy.setNum) return sx.setNum - sy.setNum;
+                return sx.gameNum - sy.gameNum;
+            });
+            const lastRow = round_data[round_data.length - 1];
+            const last = lotto023ResolvedSetGameLocal(lastRow);
+            const last_set = last.setNum;
+            const last_game = last.gameNum;
+            if (last_game >= 5) {
+                next_set = last_set + 1;
+                next_game = 1;
+            } else {
+                next_set = last_set;
+                next_game = last_game + 1;
+            }
+        }
+
+        const newObj = Object.assign({}, g, {
+            '회차': String(target_round),
+            '세트': String(next_set),
+            '게임': String(next_game)
+        });
+        const normalizedRow = normalizeLottoData([newObj])[0];
+        list.push(normalizedRow);
+    }
+
+    list.sort(function (a, b) {
+        const ra = Number(a.round);
+        const rb = Number(b.round);
+        if (rb !== ra) return rb - ra;
+        const sa = lotto023ResolvedSetGameLocal(a);
+        const sb = lotto023ResolvedSetGameLocal(b);
+        if (sa.setNum !== sb.setNum) return sa.setNum - sb.setNum;
+        return sa.gameNum - sb.gameNum;
+    });
+
+    saveToCache(CACHE_KEYS.LOTTO023, list);
+}
+
+/**
  * Lotto023 데이터 로드
+ * - 사용자 저장·삭제는 localStorage(CACHE_KEYS.LOTTO023)만 사용.
+ * - 키가 없을 때만 `.source/Lotto023.xlsx` 로 최초 시드(전체 삭제 후 `[]` 가 저장된 경우는 재시드 안 함).
  * @param {string} basePath - 기본 경로
  * @returns {Promise<Array>} 로또 데이터
  */
 async function loadLotto023Data(basePath = '') {
     console.time('LoadLotto023');
 
-    // 원본 XLSX를 우선 로드(Excel·스크립트로 파일만 바꾼 경우에도 화면과 일치).
-    // 실패 시(오프라인·file:// 등)에만 localStorage 캐시로 폴백.
+    try {
+        const raw = localStorage.getItem(CACHE_KEYS.LOTTO023);
+        if (raw !== null) {
+            const cached = JSON.parse(raw);
+            if (Array.isArray(cached)) {
+                console.timeEnd('LoadLotto023');
+                return cached;
+            }
+        }
+    } catch (error) {
+        console.error('Lotto023 캐시 읽기 오류:', error);
+    }
+
     try {
         const xlsxUrl = `${basePath}.source/Lotto023.xlsx`;
-        /* 저장 직후·목록 갱신 시 스테일 캐시 방지 (번호저장 → 테이블 재출력) */
         const data = await loadXLSX(xlsxUrl, { cache: 'no-store' });
 
         if (data.length > 0) {
@@ -321,12 +442,6 @@ async function loadLotto023Data(basePath = '') {
         }
     } catch (error) {
         console.error('Lotto023 XLSX 로드 실패:', error);
-    }
-
-    const cached = getFromCache(CACHE_KEYS.LOTTO023);
-    if (cached && Array.isArray(cached) && cached.length > 0) {
-        console.timeEnd('LoadLotto023');
-        return cached;
     }
 
     console.timeEnd('LoadLotto023');
@@ -1018,25 +1133,9 @@ async function saveGamesToCSV() {
             }));
 
             try {
-                const response = await fetch(resolveApiPath('/api/delete-lotto023'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: itemsToDelete })
-                });
-
-                if (response.ok) {
-                    const res = await response.json();
-                    if (res.returnValue === 'success') {
-                        // 캐시 삭제 및 새로고침
-                        if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
-                            localStorage.removeItem(CACHE_KEYS.LOTTO023);
-                        } else {
-                            localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
-                        }
-                        await loadAndDisplayResults();
-                        deleteCount = itemsToDelete.length;
-                    }
-                }
+                await removeLotto023ItemsFromLocal(itemsToDelete);
+                await loadAndDisplayResults();
+                deleteCount = itemsToDelete.length;
             } catch (err) {
                 console.error('삭제 실패:', err);
                 alert('삭제 중 오류가 발생했습니다.');
@@ -1148,16 +1247,9 @@ async function saveGamesToCSV() {
 
     if (!needNewSavePayload) {
         if (deleteCount > 0) {
-            if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
-                localStorage.removeItem(CACHE_KEYS.LOTTO023);
-            } else {
-                localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
-            }
-            await loadAndDisplayResults();
             updateSaveBoxState();
             alert(`선택한 ${deleteCount}개의 기록이 삭제되었습니다.`);
         } else {
-            // 아무것도 안 했으면 알림
             alert('저장할 게임이나 삭제할 기록이 선택되지 않았습니다.');
         }
         return;
@@ -1171,63 +1263,44 @@ async function saveGamesToCSV() {
 
     const gamesPayload = gamesToSave;
 
-    // 동일 회차·세트/게임이 있으면 서버에서 세트+1, 게임 1부터 부여하므로 별도 경고 없이 전송
-
-    // 새 게임 서버 전송
+    // Lotto023: 로컬(localStorage)에만 저장 (세트/게임 규칙은 appendLotto023GamesToLocal)
     try {
-        const response = await fetch(resolveApiPath('/api/save-lotto023'), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ games: gamesPayload })
-        });
+        await appendLotto023GamesToLocal(gamesPayload);
 
-        if (!response.ok) throw new Error(`서버 응답 오류 (${response.status})`);
-
-        const result = await parseFetchJsonResponse(response);
-        if (result.returnValue === 'success') {
-            if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
-                localStorage.removeItem(CACHE_KEYS.LOTTO023);
-            } else {
-                localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
+        AppState.setSelectedBalls = Array.from({ length: 5 }, () => []);
+        for (let i = 1; i <= 5; i++) {
+            const cb = document.getElementById(`gameCheckbox${i}`);
+            if (cb) { cb.checked = false; cb.disabled = true; }
+            const modeBtn = document.getElementById(`modeBtn${i}`);
+            if (modeBtn) {
+                modeBtn.dataset.mode = 'manual';
+                modeBtn.textContent = '수동';
+                delete modeBtn.dataset.semiFrom;
+                delete modeBtn.dataset.diversifyOffset;
+                modeBtn.title = '';
             }
-
-            AppState.setSelectedBalls = Array.from({ length: 5 }, () => []);
-            for (let i = 1; i <= 5; i++) {
-                const cb = document.getElementById(`gameCheckbox${i}`);
-                if (cb) { cb.checked = false; cb.disabled = true; }
-                const modeBtn = document.getElementById(`modeBtn${i}`);
-                if (modeBtn) {
-                    modeBtn.dataset.mode = 'manual';
-                    modeBtn.textContent = '수동';
-                    delete modeBtn.dataset.semiFrom;
-                    delete modeBtn.dataset.diversifyOffset;
-                    modeBtn.title = '';
-                }
-            }
-            /* 조회구간 통계 → 옵션필터·합계·핫콜 기준을 먼저 맞춘 뒤 저장공을 그려야 BoB·행 메타와 번호생성·신뢰도가 같은 전제를 씀 */
-            try {
-                const listData = AppState.currentViewNumbersBaseData || AppState.currentStatsRounds || AppState.allLotto645Data;
-                if (listData && listData.length > 0 && typeof extractAndApplyFilters === 'function') {
-                    extractAndApplyFilters(listData);
-                }
-                if (AppState.optionFilters) {
-                    AppState.optionFilters.oddEven = document.getElementById('filterOddEven')?.value || 'none';
-                    AppState.optionFilters.hotCold = document.getElementById('filterHotCold')?.value || 'none';
-                    AppState.optionFilters.consecutive = document.getElementById('filterConsecutive')?.value || 'none';
-                }
-            } catch (saveFilterErr) {
-                console.error('[저장 후] 조회구간 필터 반영 실패:', saveFilterErr);
-            }
-            /* Lotto023.xlsx 반영분을 다시 읽어 저장 목록(resultContainer) 재출력 */
-            await loadAndDisplayResults();
-            await generateAllGames(); /* generateAllGames는 async (자동/lucky 슬롯 풀 기반 보충) */
-            updateSaveBoxState();
-
-            const msg = deleteCount > 0 ? `새 게임이 저장되고 ${deleteCount}개의 기록이 삭제되었습니다.` : '저장 완료!';
-            alert(msg);
-        } else {
-            throw new Error(result.error || '알 수 없는 오류');
         }
+        /* 조회구간 통계 → 옵션필터·합계·핫콜 기준을 먼저 맞춘 뒤 저장공을 그려야 BoB·행 메타와 번호생성·신뢰도가 같은 전제를 씀 */
+        try {
+            const listData = AppState.currentViewNumbersBaseData || AppState.currentStatsRounds || AppState.allLotto645Data;
+            if (listData && listData.length > 0 && typeof extractAndApplyFilters === 'function') {
+                extractAndApplyFilters(listData);
+            }
+            if (AppState.optionFilters) {
+                AppState.optionFilters.oddEven = document.getElementById('filterOddEven')?.value || 'none';
+                AppState.optionFilters.hotCold = document.getElementById('filterHotCold')?.value || 'none';
+                AppState.optionFilters.consecutive = document.getElementById('filterConsecutive')?.value || 'none';
+            }
+        } catch (saveFilterErr) {
+            console.error('[저장 후] 조회구간 필터 반영 실패:', saveFilterErr);
+        }
+        /* 로컬 캐시 반영분으로 저장 목록(resultContainer) 재출력 */
+        await loadAndDisplayResults();
+        await generateAllGames(); /* generateAllGames는 async (자동/lucky 슬롯 풀 기반 보충) */
+        updateSaveBoxState();
+
+        const msg = deleteCount > 0 ? `새 게임이 저장되고 ${deleteCount}개의 기록이 삭제되었습니다.` : '저장 완료!';
+        alert(msg);
     } catch (error) {
         console.error('저장 오류:', error);
         alert('저장 중 오류가 발생했습니다: ' + error.message);

@@ -456,32 +456,13 @@ function setupDeleteSelectedButton() {
                 });
 
                 try {
-                    const response = await fetch(resolveApiPath('/api/delete-lotto023'), {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ items: itemsToDel })
-                    });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.returnValue === 'success') {
-                            if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
-                                localStorage.removeItem(CACHE_KEYS.LOTTO023);
-                            } else {
-                                localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
-                            }
-                            await loadAndDisplayResults();
-                            updateSaveBoxState();
-                            alert(`선택한 ${checkedBoxes.length}개의 기록이 삭제되었습니다.`);
-                        } else {
-                            throw new Error(result.error || '알 수 없는 오류');
-                        }
-                    } else {
-                        throw new Error('서버 응답 오류');
-                    }
+                    await removeLotto023ItemsFromLocal(itemsToDel);
+                    await loadAndDisplayResults();
+                    updateSaveBoxState();
+                    alert(`선택한 ${checkedBoxes.length}개의 기록이 삭제되었습니다.`);
                 } catch (err) {
                     console.error('선택 삭제 실패:', err);
-                    alert('삭제 중 오류가 발생했습니다: ' + err.message);
+                    alert('삭제 중 오류가 발생했습니다: ' + ((err && err.message) ? err.message : String(err)));
                 }
             }
         } else {

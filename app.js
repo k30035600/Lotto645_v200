@@ -2888,23 +2888,9 @@ function sequentialPairTouchSet(sixNumbers) {
  */
 async function deleteAllResults() {
     try {
-        const response = await fetch(resolveApiPath('/api/delete-all-lotto023'), {
-            method: 'POST'
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            if (result.returnValue === 'success') {
-                // 캐시 삭제 및 새로고침
-                if (typeof CACHE_KEYS !== 'undefined' && CACHE_KEYS.LOTTO023) {
-                    localStorage.removeItem(CACHE_KEYS.LOTTO023);
-                } else {
-                    localStorage.removeItem('LOTTO023_DATA_CACHE_V2');
-                }
-                await loadAndDisplayResults();
-                alert('모든 기록이 삭제되었습니다.');
-            }
-        }
+        saveToCache(CACHE_KEYS.LOTTO023, []);
+        await loadAndDisplayResults();
+        alert('모든 기록이 삭제되었습니다.');
     } catch (err) {
         console.error('전체 삭제 실패:', err);
         alert('삭제 중 오류가 발생했습니다.');
