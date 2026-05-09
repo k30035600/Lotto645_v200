@@ -142,11 +142,6 @@ function initializeGameBox() {
         sumDisplay.className = 'game-sum';
         sumDisplay.textContent = '0';
 
-        const probDisplay = document.createElement('div');
-        probDisplay.id = `gameProb${i}`;
-        probDisplay.className = 'game-prob stat-filter-trust-tip-host';
-        probDisplay.textContent = '0%';
-
         const rightGroup = document.createElement('div');
         rightGroup.className = 'game-right-group';
         rightGroup.appendChild(sumDisplay);
@@ -159,7 +154,6 @@ function initializeGameBox() {
 
         gameSet.appendChild(checkbox);
         gameSet.appendChild(modeBtn);
-        gameSet.appendChild(probDisplay);
         gameSet.appendChild(gameRowTail);
 
         gameSetsContainer.appendChild(gameSet);

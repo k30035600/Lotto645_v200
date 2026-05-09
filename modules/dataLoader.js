@@ -340,7 +340,7 @@ async function removeLotto023ItemsFromLocal(itemsToDelete) {
 }
 
 /**
- * Lotto023: 신규 게임을 로컬 목록에 붙임 (세트/게임 규칙은 서버 save-lotto023 와 동일)
+ * Lotto023: 신규 게임을 로컬 목록에 붙임 (세트/게임 번호 규칙 유지)
  * @param {Array<object>} gamesPayload - saveGamesToCSV 가 만든 한글 키 객체 배열
  */
 async function appendLotto023GamesToLocal(gamesPayload) {
@@ -406,13 +406,12 @@ async function appendLotto023GamesToLocal(gamesPayload) {
 }
 
 /**
- * Lotto023 데이터 로드
- * - 사용자 저장·삭제는 localStorage(CACHE_KEYS.LOTTO023)만 사용.
- * - 키가 없을 때만 `.source/Lotto023.xlsx` 로 최초 시드(전체 삭제 후 `[]` 가 저장된 경우는 재시드 안 함).
- * @param {string} basePath - 기본 경로
- * @returns {Promise<Array>} 로또 데이터
+ * Lotto023 데이터 로드 (브라우저 localStorage 전용)
+ * - 저장·삭제·목록은 CACHE_KEYS.LOTTO023 만 사용. 서버·xlsx 시드 없음.
+ * @param {string} [_basePath] 호환용(미사용)
+ * @returns {Promise<Array>} 저장된 게임 배열
  */
-async function loadLotto023Data(basePath = '') {
+async function loadLotto023Data(_basePath = '') {
     console.time('LoadLotto023');
 
     try {
@@ -426,20 +425,6 @@ async function loadLotto023Data(basePath = '') {
         }
     } catch (error) {
         console.error('Lotto023 캐시 읽기 오류:', error);
-    }
-
-    try {
-        const xlsxUrl = `${basePath}.source/Lotto023.xlsx`;
-        const data = await loadXLSX(xlsxUrl, { cache: 'no-store' });
-
-        if (data.length > 0) {
-            const normalized = normalizeLottoData(data);
-            saveToCache(CACHE_KEYS.LOTTO023, normalized);
-            console.timeEnd('LoadLotto023');
-            return normalized;
-        }
-    } catch (error) {
-        console.error('Lotto023 XLSX 로드 실패:', error);
     }
 
     console.timeEnd('LoadLotto023');

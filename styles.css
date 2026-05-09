@@ -78,8 +78,7 @@
     --color-table-header-fg: #ffffff;
     /* 밝은 배경 위 보조 라벨(행 머리글 등) — 열 머리글(thead)은 배경 진하게 쓰고 --color-table-header-fg 사용 */
     --color-table-header-fg-on-light: #334155;
-    /* 회차·메타 사이: BoB·등위 슬롯 합 — 좁게 두고 슬롯 내 정렬로 사이 빈칸 최소화 */
-    /* 등위 열만 (BoB 슬롯 제거) */
+    /* 회차·메타 사이: 등위 열(가운데 정렬) */
     --result-col-mid-width: 40px;
     --result-col-mid-slot-width: var(--result-col-mid-width);
 
@@ -572,28 +571,31 @@ a.header-action-btn {
         flex: 1 1 auto;
     }
     .logo-text h1 {
-        font-size: clamp(0.65rem, 2.85vw, 1rem) !important;
-        line-height: 1.12;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: clamp(0.98rem, 4.6vw, 1.42rem) !important;
+        line-height: 1.18;
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
         display: flex;
         align-items: baseline;
+        flex-wrap: wrap;
         min-width: 0;
     }
     .logo-title-short {
         display: inline-flex !important;
         align-items: baseline;
+        flex-wrap: wrap;
         min-width: 0;
         max-width: 100%;
         font-weight: 800 !important;
         letter-spacing: -0.03em;
+        font-size: 1.05em;
     }
     .logo-brand-clickable {
         flex: 1 1 auto;
         min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
         cursor: pointer;
         -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
         outline: none;
@@ -1449,51 +1451,17 @@ input.result-filter-text {
     overflow: hidden;
 }
 
-#resultContainer .result-col-mid-slot--bob {
-    justify-content: flex-end;
-    align-items: center;
-    padding-right: 0;
-}
 #resultContainer .result-col-mid-slot--rank {
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     padding-left: 0;
+    padding-right: 0;
 }
 
-/* 등수 배지를 열의 오른쪽(메타 텍스트 쪽)에 붙여 5등 우측 빈칸 제거 */
 #resultContainer .result-col-rank {
-    justify-content: flex-end;
+    justify-content: center;
 }
 
-/* BoB 슬롯(열의 절반) 안에 맞는 파란 박스(3자리) */
-#resultContainer .result-bob-rank-box {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    align-self: center;
-    box-sizing: border-box;
-    flex: 0 1 auto;
-    max-width: 100%;
-    margin: 0;
-    padding: 1px 1px;
-    border-radius: 3px;
-    background: linear-gradient(180deg, #1e88e5 0%, #1565c0 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
-    line-height: 1.1;
-}
-#resultContainer .result-bob-rank-box-num {
-    display: block;
-    text-align: center;
-    font-size: 0.58rem;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
-    color: var(--color-bg-white, #ffffff);
-    letter-spacing: 0;
-    line-height: 1.15;
-    min-width: 0;
-    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
-}
 /* 등위 배지: 폭 최소 */
 #resultContainer .result-win-rank-badge {
     font-size: 0.58rem;
@@ -1516,7 +1484,7 @@ input.result-filter-text {
     min-height: 0;
 }
 
-/* 요약 바: 목록 .result-saved-main 과 동일 4열(회차|BoB·등위|메타|번호열) */
+/* 요약 바: 목록 .result-saved-main 과 동일 (회차|등위|메타|번호열) */
 .result-summary-bar-main {
     display: grid;
     grid-template-columns: var(--result-col-round-width) var(--result-col-mid-width) minmax(0, 1fr) minmax(0, var(--result-saved-right-block-width));
@@ -1611,7 +1579,7 @@ input.result-filter-text {
     cursor: pointer;
 }
 
-/* 회차 버튼: 그리드 1열 폭을 행의 .result-col-round 와 동일하게 채워 [N] 시작선·다음 열(BoB) 경계 일치 */
+/* 회차 버튼: 그리드 1열 폭을 행의 .result-col-round 와 동일 */
 .result-summary-box--bar .result-header-tab--round {
     font-size: 0.8rem;
     font-weight: bold;
@@ -1640,7 +1608,7 @@ input.result-filter-text {
     background: rgba(46, 125, 50, 0.22);
 }
 
-/* 헤더 BoB·등위: 목록과 동일 반폭 고정 그리드, 슬래시는 중앙 오버레이 */
+/* 헤더 등위: 목록과 동일 폭, 단일 슬롯 */
 .result-summary-box--bar .result-summary-cell-mid {
     position: relative;
     display: grid;
@@ -1664,64 +1632,17 @@ input.result-filter-text {
     box-sizing: border-box;
     overflow: hidden;
 }
-.result-summary-box--bar .result-summary-mid-slot--bob {
-    justify-content: flex-end;
-}
 .result-summary-box--bar .result-summary-mid-slot--rank {
-    justify-content: flex-start;
+    justify-content: center;
 }
-/* 행의 파란 순위 박스·등위 배지와 같은 열 경계: 슬래시는 두 칸 사이(그리드 50%) */
-.result-summary-box--bar .result-summary-mid-slash {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.58rem;
-    font-weight: 800;
-    color: rgba(255, 255, 255, 0.88);
-    opacity: 1;
-    line-height: 1;
-    user-select: none;
-    pointer-events: none;
-    z-index: 1;
-}
-/* 목록 등위 슬롯과 동일: 왼쪽(두 번째 칸 시작) 정렬 — 가운데 정렬 금지 */
 .result-summary-box--bar .result-summary-mid-slot--rank .result-summary-hcol {
-    justify-content: flex-start;
-    width: auto;
+    justify-content: center;
+    width: 100%;
     max-width: 100%;
-    text-align: left;
-    font-size: 0.58rem;
-    line-height: 1.15;
-    font-weight: 800;
-}
-.result-summary-box--bar .result-header-tab--bob {
-    font-size: 0.58rem;
-    font-weight: 800;
-    font-family: inherit;
-    font-variant-numeric: tabular-nums;
-    padding: 1px 3px;
-    min-height: calc(0.58rem + 4px);
-    border-radius: 3px;
-    border: none;
-    background: rgba(0, 0, 0, 0.28);
-    color: var(--color-bg-white, #ffffff);
-    cursor: pointer;
-    box-sizing: border-box;
-    line-height: 1.15;
-    flex-shrink: 0;
-    max-width: 100%;
-    margin: 0;
-    align-self: center;
     text-align: center;
-}
-.result-summary-box--bar .result-header-tab--bob:hover {
-    background: rgba(255, 255, 255, 0.08);
-}
-.result-summary-box--bar .result-header-tab--bob.result-header-tab--active {
-    color: #e8f5e9;
+    font-size: 0.58rem;
+    line-height: 1.15;
     font-weight: 800;
-    background: rgba(46, 125, 50, 0.35);
 }
 /* 게임수 · 결과통계 — 그리드 마지막 열 = 행의 세트/게임(detail) 열 */
 .result-summary-box--bar .result-summary-stats-cell {
@@ -2259,7 +2180,7 @@ button.center-nav-link.center-nav-link--btn {
     color: var(--color-text-muted) !important;
 }
 
-/* 6공+합계: 확률칩 바로 옆에 두어 우측 끝 밀림·잘림 방지. 사이 gap 최소화 */
+/* 6공+합계: 모드 버튼 옆에 한 덩어리로 배치 */
 .game-row-tail {
     display: flex;
     align-items: center;
@@ -2313,22 +2234,6 @@ button.center-nav-link.center-nav-link--btn {
     letter-spacing: -0.04em;
     flex-shrink: 0;
     white-space: nowrap;
-}
-
-.game-set-row > .game-prob,
-.game-right-group .game-prob {
-    font-size: 0.6rem;
-    font-weight: bold;
-    color: #fff;
-    background: var(--color-text-muted);
-    padding: 1px 0;
-    border-radius: 8px;
-    text-align: center;
-    visibility: hidden;
-    width: 30px;
-    min-width: 30px;
-    flex-shrink: 0;
-    box-sizing: border-box;
 }
 
 /* 숫자 입력 필드 스핀 버튼 제거 (크롬, 사파리 등) */
