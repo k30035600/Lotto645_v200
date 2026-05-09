@@ -792,8 +792,8 @@ a.header-action-btn {
 
 @container game-col (min-width: 421px) {
     .game-panel {
-        /* 가로 배치: 선택공 열 ≈ 5/12 — 9열에 맞게 직경 상한 */
-        --panel-pick-ball: min(var(--ball-size), max(11px, calc((100cqi * 0.42 - 56px) / 9)));
+        /* 가로 배치: 선택공 열 ≈ 5/12 — 여유·패딩 반영해 상한 엄격히 */
+        --panel-pick-ball: min(var(--ball-size), max(9px, calc((100cqi * 0.36 - 96px) / 9)));
     }
 }
 
@@ -804,8 +804,8 @@ a.header-action-btn {
         --ball-font: 0.74rem;
         --ball-size-sm: 18px;
         --ball-font-sm: 0.7rem;
-        /* 세로 스택: 선택공 폭 ≈ 패널 전체 */
-        --panel-pick-ball: min(var(--ball-size), max(11px, calc((100cqi - 52px) / 9)));
+        /* 세로 스택: 패널·섹션 패딩·gap(8×4px) 반영 — cqi는 game-col 폭 */
+        --panel-pick-ball: min(var(--ball-size), max(9px, calc((100cqi - 108px) / 9)));
     }
 
     /* 선택공·게임공 가로 배치 시 6개 번호공이 overflow-x 로 잘림 → 세로 스택으로 게임열 전체 폭 사용 */
@@ -846,7 +846,7 @@ a.header-action-btn {
         --ball-font: 0.68rem;
         --ball-size-sm: 17px;
         --ball-font-sm: 0.65rem;
-        --panel-pick-ball: min(var(--ball-size), max(10px, calc((100cqi - 48px) / 9)));
+        --panel-pick-ball: min(var(--ball-size), max(9px, calc((100cqi - 108px) / 9)));
     }
 
     .panel-box-game .game-panel h2 {
@@ -2102,6 +2102,10 @@ button.center-nav-link.center-nav-link--btn {
 
 .game-panel .number-grid-container {
     column-gap: 4px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 #gridGameRow > #gameBox {
@@ -2235,6 +2239,17 @@ button.center-nav-link.center-nav-link--btn {
     gap: var(--game-six-ball-gap, 2px);
     justify-content: flex-start;
     align-items: center;
+}
+
+/* 게임 패널: 6공을 6열 그리드로 — 각 칸에 맞춰 선택공과 동일한 겹침 방지 패턴 */
+.game-panel #gameBox .game-balls-wrap {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: var(--game-six-ball-gap, 2px);
+    row-gap: 0;
+    justify-items: center;
+    align-items: center;
+    min-width: 0;
 }
 
 .game-right-group {
@@ -2464,18 +2479,32 @@ input[type=number] {
     font-size: clamp(0.5rem, calc(var(--ball-size-sm) * 0.41), 0.95rem);
 }
 
-/* 게임 패널: 선택공(1~45)·G1~G5 게임공 직경 동일 — --panel-pick-ball(9열 상한·겹침 방지) */
-.game-panel #numberGridSection .number-grid-container .stat-ball.stat-ball--sm,
-.game-panel #gameBox .game-balls-wrap .stat-ball.stat-ball--sm {
-    width: var(--panel-pick-ball);
+/* 게임 패널: 선택공은 그리드 칸(1fr)에 맞춤 — 고정 px보다 겹침 방지에 유리 */
+.game-panel #numberGridSection .number-grid-container .stat-ball.stat-ball--sm {
+    width: 100%;
+    max-width: var(--ball-size);
     min-width: 0;
-    max-width: var(--panel-pick-ball);
-    max-height: var(--panel-pick-ball);
-    aspect-ratio: 1;
     height: auto;
+    aspect-ratio: 1;
+    max-height: var(--ball-size);
     box-sizing: border-box;
-    flex-shrink: 0;
-    font-size: clamp(0.42rem, calc(var(--panel-pick-ball) * 0.42), 0.95rem);
+    flex-shrink: 1;
+    justify-self: center;
+    align-self: center;
+    font-size: clamp(0.36rem, calc(var(--panel-pick-ball) * 0.42), 0.88rem);
+}
+
+/* G1~G5 게임공: 6열 칸 너비에 맞춤(선택공과 동일 패턴) */
+.game-panel #gameBox .game-balls-wrap .stat-ball.stat-ball--sm {
+    width: 100%;
+    max-width: var(--ball-size);
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1;
+    max-height: var(--ball-size);
+    box-sizing: border-box;
+    flex-shrink: 1;
+    font-size: clamp(0.36rem, calc(var(--panel-pick-ball) * 0.42), 0.88rem);
 }
 
 /* 동행복권 컬러 클래스 */
