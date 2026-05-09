@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260510gameStackDelete">
+    <link rel="stylesheet" id="mainCss" href="styles.css?v=20260509modalJustify">
 </head>
 
 <body>
@@ -98,17 +98,13 @@
                 <div class="game-panel center-panel">
                     <div class="panel-inner">
                     <div id="centerNavBar" class="ui-box center-nav-bar">
-                        <div class="center-nav-bar-top">
-                            <div class="center-nav-brand" title="(주)나눔과어울림">(주)나눔과 어울림</div>
-                            <div class="center-nav-header-actions">
-                                <button type="button" class="center-nav-header-btn" id="centerHelpBtn" onclick="showHelpModal()">도움말</button>
-                                <button type="button" class="center-nav-header-btn" id="centerExitBtn" onclick="shutdownServer()">종료</button>
-                            </div>
-                        </div>
-                        <div class="center-nav-links">
+                        <div class="center-nav-brand" title="(주)나눔과어울림">(주)나눔과 어울림</div>
+                        <div class="center-nav-actions-row" role="toolbar" aria-label="행운번호·Perfect top 5·최근당첨번호·도움말·종료">
                             <a href="#" id="navLuckyNumbers" class="center-nav-link">행운번호 받기</a>
                             <a href="#" id="navPerfectBob" class="center-nav-link">Perfect top 5</a>
                             <a href="#" id="navFetchLatest" class="center-nav-link">최근당첨번호</a>
+                            <button type="button" class="center-nav-link center-nav-link--btn" id="centerHelpBtn" onclick="showHelpModal()">도움말</button>
+                            <button type="button" class="center-nav-link center-nav-link--btn" id="centerExitBtn" onclick="shutdownServer()">종료</button>
                         </div>
                     </div>
 
@@ -364,11 +360,11 @@
     <script src="modules/aiChat.js"></script>
     <script src="modules/filters.js"></script>
     <script src="modules/harmonyPool.js"></script>
-    <script src="modules/renderer.js?v=20260510modalCaptureCenterNav"></script>
+    <script src="modules/renderer.js?v=20260509resultBubble"></script>
     <script src="modules/eventHandlers.js"></script>
 
     <!-- 메인 애플리케이션 -->
-    <script src="app.js?v=20260510captureClone"></script>
+    <script src="app.js?v=20260509helpModal"></script>
 
 </body>
 

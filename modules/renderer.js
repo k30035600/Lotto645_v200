@@ -671,7 +671,7 @@ function showResultAnalysisBubble(summaryData, allGames, sortedGroups) {
             <div class="apology-icon">🎉</div>
             <h3>축하드립니다!</h3>
             <p style="${jst}">${latestRound}회 ${totalGames}게임에서 <b>${resultText}</b>!</p>
-            ${pickSumSummaryStr ? '<p style="text-align:center;font-size:var(--bubble-fs-sm);color:var(--color-income,#1565C0);margin:4px 0 6px;font-weight:600;">' + pickSumSummaryStr + '</p>' : ''}
+            ${pickSumSummaryStr ? '<p style="' + jst + 'font-size:var(--bubble-fs-sm);color:var(--color-income,#1565C0);margin:4px 0 6px;font-weight:600;">' + pickSumSummaryStr + '</p>' : ''}
             <p style="${jst}">
                 당첨번호 <b>${winNumsStr} + ${latestWinRound.bonus}</b>의 패턴을
                 정확히 읽어낸 분석이 빛을 발했습니다.
@@ -680,7 +680,7 @@ function showResultAnalysisBubble(summaryData, allGames, sortedGroups) {
                 앞으로도 더 정밀한 패턴 분석과 데이터 기반 예측으로
                 사용자님의 행운을 지속적으로 이어가겠습니다!
             </p>
-            <p style="text-align:center;font-weight:700;color:var(--color-income,#1565C0);margin-top:14px;">
+            <p style="${jst}font-weight:700;color:var(--color-income,#1565C0);margin-top:14px;">
                 ${nextRound}회에서도 좋은 결과 기대해주세요! 🍀
             </p>
             <div class="apology-sign">AI 예측 시스템 올림<br>${dateStr}</div>
@@ -793,7 +793,7 @@ function showResultAnalysisBubble(summaryData, allGames, sortedGroups) {
                     AI추천이나 행운모드와 병행하시면
                     더 다양한 조합을 확보하실 수 있습니다.
                 </p>
-                <p style="text-align:center;font-weight:700;color:var(--color-accent,#5A6E7A);margin-top:14px;">
+                <p style="${jst}font-weight:700;color:var(--color-accent,#5A6E7A);margin-top:14px;">
                     다음 ${nextRound}회에서는 행운이 함께하길! 🍀
                 </p>
                 <div class="apology-sign">AI 예측 시스템 올림<br>${dateStr}</div>
@@ -839,7 +839,7 @@ function showResultAnalysisBubble(summaryData, allGames, sortedGroups) {
                     연속번호와 AC값 분포까지 종합적으로 반영하여
                     보다 균형 잡힌 번호 조합을 제공하겠습니다.
                 </p>
-                <p style="text-align:center;font-weight:700;color:#c0392b;margin-top:14px;">
+                <p style="${jst}font-weight:700;color:#c0392b;margin-top:14px;">
                     다음 ${nextRound}회에는 반드시 설욕하겠습니다! 🔥
                 </p>
                 <div class="apology-sign">AI 예측 시스템 올림<br>${dateStr}</div>
@@ -866,9 +866,6 @@ function showGameAnalysisBubble(game, winRound) {
     const nums = game.numbers ? [...game.numbers].sort((a, b) => a - b) : [];
     const numsStr = nums.join(', ');
     const gamePickSum = getGamePickSum(game);
-    const pickSumLine = gamePickSum != null && !Number.isNaN(gamePickSum)
-        ? `<br><span style="color:#1565C0;font-weight:600;">선택 합계 ${gamePickSum}</span>`
-        : '';
     const pickSumModeSuffix = gamePickSum != null && !Number.isNaN(gamePickSum) ? ` · 선택 합계 <b>${gamePickSum}</b>` : '';
 
     const overlay = document.createElement('div');
@@ -896,8 +893,8 @@ function showGameAnalysisBubble(game, winRound) {
             <div style="background:var(--color-bg-light,#F0F2F5);border-radius:8px;padding:8px 10px;border:1px solid var(--color-border,#D5DAE0);margin-top:8px;">
                 ${pending.choiceReasonHtml}
             </div>
-            <p style="text-align:center;font-weight:700;color:var(--color-income,#1565C0);margin-top:12px;">행운을 빕니다! 🍀</p>
-            <div style="text-align:center;">
+            <p style="${jst}font-weight:700;color:var(--color-income,#1565C0);margin-top:12px;">행운을 빕니다! 🍀</p>
+            <div style="display:flex;justify-content:center;">
             <button type="button" class="apology-close" onclick="this.closest('.apology-overlay').remove()">확인 👍</button>
             </div>
         </div>`;
@@ -933,6 +930,9 @@ function showGameAnalysisBubble(game, winRound) {
     const winHot = winNums.filter(n => hotSet.has(n)).length;
     const winCold = 6 - winHot;
 
+    const gameNumSum = nums.length ? nums.reduce((a, n) => a + n, 0) : 0;
+    const winNumSum = winNums.length ? winNums.reduce((a, n) => a + n, 0) : 0;
+
     const compTbl = `
         <table class="bubble-data-table">
             <tr>
@@ -959,6 +959,11 @@ function showGameAnalysisBubble(game, winRound) {
                 <td>AC값</td>
                 <td style="text-align:center;font-weight:700;">${gameAC}</td>
                 <td style="text-align:center;">${winAC}</td>
+            </tr>
+            <tr>
+                <td>번호합계</td>
+                <td style="text-align:center;font-weight:700;">${gameNumSum}</td>
+                <td style="text-align:center;">${winNumSum}</td>
             </tr>
         </table>`;
 
@@ -1038,12 +1043,12 @@ function showGameAnalysisBubble(game, winRound) {
         <button type="button" class="bubble-close-x" aria-label="닫기" onclick="this.closest('.apology-overlay').remove()">×</button>
         <div class="apology-icon">${icon}</div>
         <h3 style="color:${titleColor};">${title}</h3>
-        <p style="text-align:center;font-size:var(--bubble-fs-sm);color:var(--color-text-muted,#5A6872);margin:2px 0 8px;">
+        <p style="${jst}font-size:var(--bubble-fs-sm);color:var(--color-text-muted,#5A6872);margin:2px 0 8px;">
             ${game.round}회 ${setDisp}${game.game}게임 · <b>${mode}</b>
-            ${pickSumLine}
         </p>
+        <p style="${jst}font-size:var(--bubble-fs-sm);font-weight:600;color:var(--color-text-secondary,#334155);margin:0 0 4px;">선택번호</p>
         <div style="text-align:center;margin:8px 0 6px;line-height:2;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;">${matchedBalls}</div>
-        <p style="text-align:center;font-size:var(--bubble-fs-sm);font-weight:600;color:var(--color-text-secondary,#334155);margin:0 0 4px;">당첨번호</p>
+        <p style="${jst}font-size:var(--bubble-fs-sm);font-weight:600;color:var(--color-text-secondary,#334155);margin:0 0 4px;">당첨번호</p>
         <div style="text-align:center;margin:0 0 12px;line-height:2;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;">${winDrawBallsRow}</div>
         ${resultSection}
         <p style="font-weight:600;margin-top:10px;margin-bottom:2px;">📊 내 선택 vs 당첨번호</p>
@@ -1062,6 +1067,7 @@ function showGoldenAiAnalysis() {
     const existing = document.querySelector('.golden-analysis-overlay');
     if (existing) existing.remove();
 
+    const jst = 'text-align:justify;word-break:keep-all;';
     const nextRound = (AppState && AppState.allLotto645Data && AppState.allLotto645Data[0])
         ? AppState.allLotto645Data[0].round + 1 : '??';
     let nextDrawDate = '';
@@ -1148,7 +1154,7 @@ function showGoldenAiAnalysis() {
 
     }
     if (displayIdx === 0) {
-        gamesHtml = `<div style="text-align:center;padding:16px;color:var(--color-text-muted,#5A6872);font-size:var(--bubble-fs);">100% 신뢰도 조합이 없습니다.</div>`;
+        gamesHtml = `<div style="${jst}padding:16px;color:var(--color-text-muted,#5A6872);font-size:var(--bubble-fs);">100% 신뢰도 조합이 없습니다.</div>`;
     }
 
     const overlay = document.createElement('div');
@@ -2609,6 +2615,7 @@ function updateGameSet(gameIndex, mode, isModeChange = false) {
 function updateSaveBoxState() {
     const saveRound = document.getElementById('saveRound');
     const saveBtn = document.getElementById('saveBtn');
+    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
 
     if (!saveRound || !saveBtn) return;
 
@@ -2626,7 +2633,6 @@ function updateSaveBoxState() {
         }
     }
 
-    // 결과 영역(resultContainer)에 선택된 삭제 체크박스가 있는지 확인
     const checkedDeleteBoxes = document.querySelectorAll('.result-delete-checkbox:checked');
     const hasCheckboxSelected = checkedDeleteBoxes.length > 0;
 
@@ -2638,7 +2644,31 @@ function updateSaveBoxState() {
     }
 
     const canSaveNumbers = hasValidGame && pendingRound != null;
-    saveBtn.disabled = !(canSaveNumbers || hasCheckboxSelected);
+
+    if (hasCheckboxSelected) {
+        saveBtn.disabled = true;
+    } else {
+        saveBtn.disabled = !canSaveNumbers;
+    }
+
+    if (deleteSelectedBtn) {
+        if (canSaveNumbers && !hasCheckboxSelected) {
+            deleteSelectedBtn.disabled = true;
+            deleteSelectedBtn.style.color = SHAREHARMONY_PALETTE.textMuted;
+            deleteSelectedBtn.style.borderColor = SHAREHARMONY_PALETTE.textMuted;
+            deleteSelectedBtn.style.cursor = 'default';
+        } else if (hasCheckboxSelected) {
+            deleteSelectedBtn.disabled = false;
+            deleteSelectedBtn.style.color = SHAREHARMONY_PALETTE.aiOrange;
+            deleteSelectedBtn.style.borderColor = SHAREHARMONY_PALETTE.aiOrange;
+            deleteSelectedBtn.style.cursor = 'pointer';
+        } else {
+            deleteSelectedBtn.disabled = true;
+            deleteSelectedBtn.style.color = SHAREHARMONY_PALETTE.textMuted;
+            deleteSelectedBtn.style.borderColor = SHAREHARMONY_PALETTE.textMuted;
+            deleteSelectedBtn.style.cursor = 'default';
+        }
+    }
 
     updateAiDashboard(hasValidGame);
 }

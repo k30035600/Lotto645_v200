@@ -406,20 +406,8 @@ function setupDeleteSelectedButton() {
 
     // 체크박스 상태 변경을 감지하기 위한 함수
     const updateDeleteBtnState = () => {
-        const checkedBoxes = document.querySelectorAll('.result-delete-checkbox:checked');
-        if (checkedBoxes.length > 0) {
-            deleteSelectedBtn.disabled = false;
-            deleteSelectedBtn.style.color = SHAREHARMONY_PALETTE.aiOrange;
-            deleteSelectedBtn.style.borderColor = SHAREHARMONY_PALETTE.aiOrange;
-            deleteSelectedBtn.style.cursor = 'pointer';
-        } else {
-            deleteSelectedBtn.disabled = true;
-            deleteSelectedBtn.style.color = SHAREHARMONY_PALETTE.textMuted;
-            deleteSelectedBtn.style.borderColor = SHAREHARMONY_PALETTE.textMuted;
-            deleteSelectedBtn.style.cursor = 'default';
-        }
         updateSelectAllState();
-        updateSaveBoxState(); // 선택 상태에 따라 저장 버튼 활성/비활성 업데이트
+        updateSaveBoxState();
     };
 
     // 전체선택 체크박스 클릭: 모든 삭제 체크박스 일괄 선택/해제

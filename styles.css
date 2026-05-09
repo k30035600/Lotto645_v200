@@ -79,8 +79,9 @@
     /* 밝은 배경 위 보조 라벨(행 머리글 등) — 열 머리글(thead)은 배경 진하게 쓰고 --color-table-header-fg 사용 */
     --color-table-header-fg-on-light: #334155;
     /* 회차·메타 사이: BoB·등위 슬롯 합 — 좁게 두고 슬롯 내 정렬로 사이 빈칸 최소화 */
-    --result-col-mid-width: 52px;
-    --result-col-mid-slot-width: calc(var(--result-col-mid-width) / 2);
+    /* 등위 열만 (BoB 슬롯 제거) */
+    --result-col-mid-width: 40px;
+    --result-col-mid-slot-width: var(--result-col-mid-width);
 
     /* ── 공통색 (Common) ── 바디 / 상태 */
     --color-border: #D5DAE0;
@@ -847,26 +848,40 @@ a.header-action-btn {
         row-gap: 0;
     }
 
-    #centerNavBar .center-nav-links {
+    #centerNavBar .center-nav-actions-row {
         flex-wrap: nowrap;
         overflow-x: hidden;
         min-width: 0;
     }
 
-    #centerNavBar .center-nav-links .center-nav-link {
+    #centerNavBar .center-nav-actions-row .center-nav-link {
         flex: 1 1 0%;
         min-width: 0;
         padding: 6px 2px;
         font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
     }
 
+    /* 2:1 중 왼쪽(2) 블록: 컨테이너 너비 기준으로 상호명 가능한 한 크게 */
     .center-nav-brand {
-        font-size: clamp(0.68rem, 6cqi, 0.82rem);
+        font-size: clamp(0.9rem, 8.8cqi, 1.58rem);
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.045em;
     }
 
-    .center-nav-header-btn {
-        font-size: clamp(0.58rem, 5cqi, 0.72rem);
-        padding: 5px 6px;
+    /* 최소·평균·최대 입력: 홀짝/핫콜 등 select와 동일 clamp (모바일 자동 확대·시각 차이 완화) */
+    .game-panel .zone-top .option-filter-row .option-filter-select.filter-dropdown,
+    .game-panel .zone-top .option-filter-row .option-filter-input.option-filter-sum {
+        font-size: clamp(0.56rem, 5.2cqi, 0.72rem) !important;
+        font-weight: 400 !important;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    .game-panel .zone-top .option-filter-sum {
+        min-width: 2.35rem;
+        width: 2.35rem;
+        max-width: 2.65rem;
     }
 
     .game-panel .option-filter-row {
@@ -880,13 +895,6 @@ a.header-action-btn {
         flex: 1 1 0%;
         min-width: 72px;
         max-width: none;
-        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
-    }
-
-    /* 합계 min/평균/max: 드롭다운과 동일 폰트 굵기·크기(cqi), 너비는 고정으로 잘림 방지 */
-    .game-panel .zone-top .option-filter-sum {
-        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
-        font-weight: 400;
     }
 
     .game-panel .zone-top .option-filter-tilde {
@@ -1348,9 +1356,9 @@ input.result-filter-text {
 
 .option-filter-input {
     width: 40px;
-    height: 22px;
+    height: 24px;
     padding: 0 2px;
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     border: 1px solid var(--input-border, #E0E0E0);
     border-radius: 4px;
     box-sizing: border-box;
@@ -1363,9 +1371,18 @@ input.result-filter-text {
     width: 2.75rem;
     max-width: 3rem;
     box-sizing: border-box;
+    height: 24px;
+    line-height: 1.2;
     font-size: 0.72rem;
     font-weight: 400;
     font-family: inherit;
+}
+
+/* 합계 min·평균·max: 홀짝/핫콜 등 select와 동일 크기(베이스 rem + zone-top에서 통일) */
+.game-panel .zone-top .option-filter-row .option-filter-select.filter-dropdown,
+.game-panel .zone-top .option-filter-row .option-filter-input.option-filter-sum {
+    font-size: 0.72rem !important;
+    font-weight: 400;
 }
 
 /* AC 드롭다운: 한 줄에서 잘리지 않도록 최소 너비 확보 */
@@ -1417,7 +1434,7 @@ input.result-filter-text {
 /* 중간 열: BoB | 등위 — 슬롯별 정렬로 두 요소 사이 여백 최소화 */
 #resultContainer .result-col-mid {
     display: grid;
-    grid-template-columns: var(--result-col-mid-slot-width) var(--result-col-mid-slot-width);
+    grid-template-columns: minmax(0, 1fr);
     column-gap: 0;
     align-items: center;
     justify-items: stretch;
@@ -1637,7 +1654,7 @@ input.result-filter-text {
 .result-summary-box--bar .result-summary-cell-mid {
     position: relative;
     display: grid;
-    grid-template-columns: var(--result-col-mid-slot-width) var(--result-col-mid-slot-width);
+    grid-template-columns: minmax(0, 1fr);
     column-gap: 0;
     align-items: center;
     justify-items: stretch;
@@ -1977,71 +1994,44 @@ input.result-filter-text {
 .result-summary-box #deleteSelectedBtn:disabled {
     cursor: default;
 }
-/* 게임공 상단: 2:1 (회사명 : 도움말·종료) + 그 아래 행운번호·BoB·최근당첨 */
+/* 게임공 상단: 한 줄 — 좌(주)명 flex:2 · 우 5등분(행운·top5·당첨·도움·종료) flex:1 */
 .center-nav-bar {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 8px;
     padding: 6px 8px;
     margin-bottom: 4px;
     box-sizing: border-box;
-}
-
-.center-nav-bar-top {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    gap: 8px;
     min-width: 0;
 }
 
 .center-nav-brand {
     flex: 2 1 0%;
     min-width: 0;
-    font-size: 0.88rem;
-    font-weight: 700;
+    font-size: 0.95rem;
+    font-weight: 800;
     color: var(--color-text-primary, #1a1a1a);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.center-nav-header-actions {
-    flex: 1 1 0%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    justify-content: flex-end;
+    display: inline-flex;
     align-items: center;
-    min-width: 0;
-}
-
-.center-nav-header-btn {
-    flex: 0 0 auto;
-    padding: 5px 10px;
-    border-radius: 4px;
-    border: 1px solid var(--input-border, #e0e0e0);
-    background: var(--color-bg-white, #fff);
-    color: var(--color-text-primary, #263238);
-    font-size: 0.72rem;
-    font-weight: 600;
-    cursor: pointer;
     line-height: 1.2;
 }
 
-.center-nav-header-btn:hover {
-    opacity: 0.9;
-    background: var(--color-bg-light, #f0f2f5);
-}
-
-.center-nav-links {
+.center-nav-actions-row {
+    flex: 1 1 0%;
     display: flex;
     flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
+    align-items: stretch;
+    gap: 4px;
+    min-width: 0;
+}
+
+.center-nav-actions-row > .center-nav-link {
+    flex: 1 1 0%;
     min-width: 0;
 }
 
@@ -2063,6 +2053,18 @@ input.result-filter-text {
 
 .center-nav-link:hover {
     opacity: 0.85;
+}
+
+button.center-nav-link.center-nav-link--btn {
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .center-nav-link.nav-active {
@@ -3063,6 +3065,27 @@ input[type=number] {
     overflow-y: auto;
 }
 
+/* 모달·말풍선 본문: 양쪽 맞춤(표·번호 줄·버튼은 별도 정렬 유지) */
+.help-modal-scroll {
+    text-align: justify;
+    text-justify: inter-word;
+    word-break: keep-all;
+}
+.help-modal-scroll h2,
+.help-modal-scroll h3 {
+    text-align: left;
+}
+
+.dialog-overlay .confirm-dialog {
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
+}
+.dialog-overlay .confirm-dialog > div:last-child {
+    text-align: right;
+    margin-top: 10px;
+}
+
 /* 필터 줄 위 오버레이: 로딩 시 레이아웃(게임박스) 높이가 밀리지 않음 */
 .option-filter-host {
     position: relative;
@@ -3278,16 +3301,22 @@ a.center-nav-link.lucky-nav-busy {
     max-width: 420px;
     width: 90vw;
     box-shadow: var(--bubble-shadow);
-    text-align: center;
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
     animation: bubbleIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     transform: scale(0.3);
     cursor: grab;
 }
 .apology-bubble.apology-bubble-pending {
-    text-align: left;
+    text-align: justify;
     max-width: min(480px, 94vw);
     max-height: min(88vh, 720px);
     overflow-y: auto;
+}
+.apology-bubble > .apology-icon,
+.apology-bubble .apology-icon {
+    text-align: center;
 }
 .apology-bubble.bubble-dragging {
     cursor: grabbing;
@@ -3339,7 +3368,11 @@ a.center-nav-link.lucky-nav-busy {
 }
 .apology-bubble .apology-close {
     margin-top: 14px;
-    display: inline-block;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: fit-content;
+    max-width: 100%;
     padding: 8px 22px;
     background: var(--color-table-header, #455A64);
     color: #fff;
@@ -3668,6 +3701,15 @@ a.center-nav-link.lucky-nav-busy {
     overflow-x: hidden;
     overflow-y: auto;
     box-shadow: var(--bubble-shadow);
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
+}
+.golden-analysis-panel .golden-game-row,
+.golden-analysis-panel .golden-game-row-grid,
+.golden-analysis-panel .golden-game-label,
+.golden-analysis-panel .golden-game-right {
+    text-align: start;
 }
 .golden-analysis-panel .golden-analysis-title {
     text-align: center;
@@ -3962,8 +4004,11 @@ a.center-nav-link.lucky-nav-busy {
     border: 1px solid var(--color-border, #D5DAE0);
     color: var(--color-text-secondary, #334155);
     font-size: 0.85rem;
-    align-self: center;
-    text-align: center;
+    align-self: stretch;
+    max-width: 100%;
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
 }
 
 .ai-message.user {
@@ -3971,6 +4016,9 @@ a.center-nav-link.lucky-nav-busy {
     color: white;
     align-self: flex-end;
     border-top-right-radius: 0;
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
 }
 
 .ai-message.assistant {
@@ -3979,6 +4027,9 @@ a.center-nav-link.lucky-nav-busy {
     border: 1px solid var(--color-border, #D5DAE0);
     align-self: flex-start;
     border-top-left-radius: 0;
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
 }
 
 .ai-chat-input-area {
@@ -4022,6 +4073,9 @@ a.center-nav-link.lucky-nav-busy {
     transition: opacity 0.2s;
     pointer-events: auto;
     cursor: grab;
+    text-align: justify;
+    word-break: keep-all;
+    text-justify: inter-word;
 }
 .round-info-bubble.bubble-dragging {
     cursor: grabbing;

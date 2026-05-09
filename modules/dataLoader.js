@@ -578,7 +578,7 @@ async function loadAndDisplayResults() {
             summary.total = displayData.filter(function (g) { return Number(g.round) === filteredRoundNum; }).length;
         }
 
-        /* 어두운 요약 바: 회차·BoB 탭 + 게임수·결과통계 */
+        /* 어두운 요약 바: 회차 · 등위 · 게임수 */
         let barRound = null;
         let barGameCount = 0;
         let barResultStats = '';
@@ -657,17 +657,13 @@ async function loadAndDisplayResults() {
                 const roundScopeTip = scopeDrawn
                     ? '현재: 추첨 완료 저장만 표시. 클릭하면 미추첨 저장만 표시합니다.'
                     : '현재: 미추첨 저장만 표시(기본). 클릭하면 추첨 완료 저장만 표시합니다.';
-                const bobTabActive = AppState.resultListBobSort ? ' result-header-tab--active' : '';
                 const statsExtraClass = barBubbleClick ? ' result-summary-drawn-main' : '';
                 const roundTabLabel = '[' + roundForHeaderButton + ']';
                 summaryContainer.innerHTML = `
                     <button type="button" id="resultHeaderRoundBtn" class="result-header-tab result-header-tab--round${roundTabActive}" aria-label="${roundForHeaderButton}회. ${roundScopeTip}" title="${roundScopeTip}">${roundTabLabel}</button>
-                    <div class="result-summary-cell-mid" role="group" aria-label="등위 · BoB 정렬">
+                    <div class="result-summary-cell-mid" role="group" aria-label="당첨 등위">
                         <div class="result-summary-mid-slot result-summary-mid-slot--rank">
                             <span class="result-summary-hcol result-summary-hcol--rank" title="당첨 등수">등위</span>
-                        </div>
-                        <div class="result-summary-mid-slot result-summary-mid-slot--bob">
-                            <button type="button" id="resultHeaderBobBtn" class="result-header-tab result-header-tab--bob${bobTabActive}" title="미추첨: BoB 켜면 BoB/행운 모드 행 핫·평균합 순+순위. BoB 끄면 세트↓·게임↑. 추첨 완료: BoB는 정성도·순위 토글.">BoB</button>
                         </div>
                     </div>
                     <div class="result-summary-main result-summary-stats-cell${statsExtraClass}">
@@ -677,16 +673,9 @@ async function loadAndDisplayResults() {
                 summaryContainer.classList.toggle('result-summary-left--filtered-round', true);
                 summaryContainer.removeAttribute('title');
                 const roundBtn = summaryContainer.querySelector('#resultHeaderRoundBtn');
-                const bobBtn = summaryContainer.querySelector('#resultHeaderBobBtn');
                 if (roundBtn) {
                     roundBtn.addEventListener('click', function () {
                         AppState.resultListScopeFilter = AppState.resultListScopeFilter === 'pending_only' ? 'drawn_only' : 'pending_only';
-                        loadAndDisplayResults();
-                    });
-                }
-                if (bobBtn) {
-                    bobBtn.addEventListener('click', function () {
-                        AppState.resultListBobSort = !AppState.resultListBobSort;
                         loadAndDisplayResults();
                     });
                 }
@@ -719,23 +708,11 @@ async function loadAndDisplayResults() {
             const winningNumbers = winRound && winRound.numbers ? new Set(winRound.numbers) : null;
             const isPendingRound = !winRound || !winRound.numbers;
 
-            /* 미추첨: BoB 끄면 항상 세트↓·게임↑. BoB 켜면 BoB/행운 모드 행만 harmony+순위(모드 행 없으면 세트·게임만) */
-            const pendingHasBobMode = games.some(isSavedGameBobMode);
             if (isPendingRound) {
-                if (AppState.resultListBobSort && pendingHasBobMode) {
-                    games.sort((a, b) => compareSavedResultRowsBob(a, b, round, winRound, true));
-                } else {
-                    games.sort((a, b) => compareSavedResultRowsPending(a, b));
-                }
-            } else if (AppState.resultListBobSort) {
-                games.sort((a, b) => compareSavedResultRowsBob(a, b, round, winRound, false));
+                games.sort(function (a, b) { return compareSavedResultRowsPending(a, b); });
             } else {
-                games.sort((a, b) => compareSavedResultRowsDrawn(a, b, winRound));
+                games.sort(function (a, b) { return compareSavedResultRowsDrawn(a, b, winRound); });
             }
-
-            const bobRanks = AppState.resultListBobSort
-                ? computeBobCompetitionRanks(games)
-                : [];
 
             games.forEach((game, gameIdx) => {
                 const resultLine = document.createElement('div');
@@ -759,28 +736,11 @@ async function loadAndDisplayResults() {
                 const midCol = document.createElement('div');
                 midCol.className = 'result-col-mid';
 
-                const midSlotBob = document.createElement('div');
-                midSlotBob.className = 'result-col-mid-slot result-col-mid-slot--bob';
                 const midSlotRank = document.createElement('div');
                 midSlotRank.className = 'result-col-mid-slot result-col-mid-slot--rank';
 
-                if (AppState.resultListBobSort && bobRanks.length > gameIdx) {
-                    const br = bobRanks[gameIdx];
-                    const capped = br > 999 ? 999 : br;
-                    const box = document.createElement('span');
-                    box.className = 'result-bob-rank-box';
-                    box.title = isPendingRound
-                        ? 'BoB 순위: 조회구간 핫·평균합 정성도(행운·BoB 동일 기준). 말풍선 신뢰도%와 별개.'
-                        : 'BoB 정성도 순위: 당첨 6개 일치·합 차. 시트 Perfect순위 있으면 가중.';
-                    const numSpan = document.createElement('span');
-                    numSpan.className = 'result-bob-rank-box-num';
-                    numSpan.textContent = String(capped);
-                    box.appendChild(numSpan);
-                    midSlotBob.appendChild(box);
-                }
                 if (winRankBadge) midSlotRank.appendChild(winRankBadge);
 
-                midCol.appendChild(midSlotBob);
                 midCol.appendChild(midSlotRank);
 
                 const parts = getSavedGameRowSummaryParts(game);
