@@ -1,6 +1,6 @@
-# GitHub Pages 정적 배포 (저장소 루트)
-# Settings → Pages → Source: GitHub Actions 필수
-# deploy-pages는 OIDC가 deploy 전용 잡에서 안전하게 연결되도록 build / deploy 분리 권장
+# 정적 HTML → GitHub Pages (GitHub 스타터 static.yml과 동일 구조)
+# Settings → Pages → Source: GitHub Actions
+# 저장소 Settings → Actions → General → Workflow permissions: "Read and write" 필요할 수 있음
 name: Deploy GitHub Pages
 
 on:
@@ -12,32 +12,25 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Exclude git metadata from site bundle
-        run: rm -rf .git
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
+          # .source/, .nojekyll 등 점(.) 경로 포함 (기본은 제외됨)
+          include-hidden-files: true
       - id: deployment
         uses: actions/deploy-pages@v5
