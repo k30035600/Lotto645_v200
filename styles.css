@@ -308,6 +308,17 @@ a.header-action-btn {
     gap: 12px;
 }
 
+.logo-title-short {
+    display: none;
+}
+
+/* 핸드폰·좁은 뷰포트(패널 레일과 동일 900px): 전체화면 API/버튼 미사용 */
+@media (max-width: 900px) {
+    #fullscreenBtn {
+        display: none !important;
+    }
+}
+
 .page-body {
     flex: 1;
     min-height: 0;
@@ -541,7 +552,60 @@ a.header-action-btn {
         padding-top: max(8px, env(safe-area-inset-top, 0px));
     }
 
-    /* 핸드폰: 헤더 좌측 그래픽 로고(SH 사각형) 숨김 — 제목·부제만 표시 */
+    /* 헤더 한 줄: 짧은 제목 · 좁은 도움말/종료 */
+    .header-content {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 6px;
+        padding-left: max(8px, env(safe-area-inset-left, 0px));
+        padding-right: max(8px, env(safe-area-inset-right, 0px));
+    }
+    .logo-area {
+        flex: 1 1 auto;
+        min-width: 0;
+        align-items: center !important;
+    }
+    .logo-text {
+        min-width: 0;
+    }
+    .logo-text h1 {
+        font-size: clamp(0.92rem, 4vw, 1.1rem) !important;
+        line-height: 1.15;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .logo-title-long {
+        display: none !important;
+    }
+    .logo-title-short {
+        display: inline !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em;
+    }
+    .logo-tagline {
+        display: none !important;
+    }
+    .header-nav {
+        flex-shrink: 0;
+    }
+    .header-nav > div {
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+    .page-header .header-action-btn#helpBtn,
+    .page-header .header-action-btn#exitBtn {
+        width: auto !important;
+        min-width: 40px;
+        max-width: 54px;
+        padding: 0 4px !important;
+        font-size: 0.65rem !important;
+        height: 30px !important;
+        line-height: 1.1;
+        box-sizing: border-box;
+    }
+    
+    /* 핸드폰: 헤더 좌측 그래픽 로고(SH 사각형) 숨김 */
     .logo-symbol {
         display: none !important;
     }
@@ -3518,6 +3582,41 @@ a.center-nav-link.lucky-nav-busy {
     line-height: var(--bubble-line);
     color: var(--color-text-primary, #1A1A1A);
 }
+/* 분석 항목 안내: 모바일 한 줄·소폰트 (패널 가로 스크롤 방지) */
+.golden-analysis-panel .golden-analysis-foot-inline {
+    margin-top: 6px;
+    padding: 6px 8px;
+    font-size: clamp(7.5px, 2.45vw, 10px);
+    line-height: 1.25;
+    color: var(--color-text-secondary, #334155);
+    overflow: hidden;
+}
+.golden-analysis-panel .golden-foot-inline-line {
+    display: block;
+    white-space: nowrap;
+    letter-spacing: -0.03em;
+    font-weight: 500;
+}
+.golden-analysis-panel .golden-foot-inline-line .golden-foot-em {
+    color: var(--color-expense, #c62828);
+    font-weight: 600;
+    margin: 0 0.06em;
+}
+.golden-analysis-panel .golden-foot-inline-line .golden-foot-sep {
+    margin: 0 0.28em;
+    color: var(--color-border, #d5dae0);
+    font-weight: 400;
+}
+.golden-analysis-panel .golden-foot-inline-line .golden-foot-muted {
+    color: var(--color-text-muted, #5a6872);
+    font-weight: 400;
+    font-size: 0.95em;
+}
+.golden-analysis-panel .golden-foot-inline-line .golden-foot-trust-lbl {
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+    cursor: help;
+}
 .golden-analysis-panel.bubble-dragging {
     cursor: grabbing;
 }
@@ -3580,6 +3679,34 @@ a.center-nav-link.lucky-nav-busy {
     font-weight: 500;
     font-family: 'Noto Sans KR', sans-serif;
 }
+/* AI 추천 분석 모달: 합계·홀짝·핫콜·연속·AC 한 줄, 모바일 가로 스크롤 방지용 소폰트 */
+.golden-analysis-panel .golden-game-meta-stats {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    row-gap: 0;
+    min-width: 0;
+    font-size: clamp(8px, 2.65vw, 11px);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    font-weight: 500;
+    overflow: hidden;
+}
+.golden-analysis-panel .golden-game-meta-stats .golden-game-meta-sep {
+    flex-shrink: 0;
+    width: 1px;
+    height: 9px;
+    margin: 0 3px;
+    background: var(--color-border, #d5dae0);
+}
+@media (max-width: 380px) {
+    .golden-analysis-panel .golden-game-meta-stats {
+        font-size: 8px;
+        letter-spacing: -0.04em;
+    }
+    .golden-analysis-panel .golden-game-meta-stats .golden-game-meta-sep {
+        margin: 0 2px;
+    }
+}
 .golden-analysis-panel .golden-foot-table {
     table-layout: fixed;
     width: 100%;
@@ -3609,6 +3736,16 @@ a.center-nav-link.lucky-nav-busy {
     font-size: var(--bubble-fs-sm);
     font-family: inherit;
     cursor: pointer;
+}
+.golden-analysis-panel .golden-actions .golden-close-panel-btn {
+    flex: 1;
+    background: var(--color-bg-white, #fff);
+    color: var(--color-text-primary,#1a1a1a);
+    border: 1px solid var(--color-border,#d5dae0);
+    font-weight: 600;
+}
+.golden-analysis-panel .golden-actions .golden-close-panel-btn:hover {
+    background: var(--color-bg-light,#f0f2f5);
 }
 
 /* 최신 추첨정보 모달 내 당첨번호 가로 배치 강제 */

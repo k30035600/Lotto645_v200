@@ -603,6 +603,7 @@ function setupFullscreenButton() {
     document.addEventListener('fullscreenchange', updateLabel);
     updateLabel();
     btn.addEventListener('click', function () {
+        if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 900px)').matches) return;
         if (!document.documentElement.requestFullscreen) return;
         if (document.fullscreenElement) {
             document.exitFullscreen().catch(function () {});
@@ -610,6 +611,19 @@ function setupFullscreenButton() {
             document.documentElement.requestFullscreen().catch(function () {});
         }
     });
+    if (typeof window.matchMedia === 'function') {
+        const mq = window.matchMedia('(max-width: 900px)');
+        function onHandheld() {
+            if (mq.matches && document.fullscreenElement) {
+                document.exitFullscreen().catch(function () {});
+            }
+        }
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', onHandheld);
+        } else if (typeof mq.addListener === 'function') {
+            mq.addListener(onHandheld);
+        }
+    }
 }
 
 function setupResultFilterListeners() {

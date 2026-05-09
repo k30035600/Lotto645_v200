@@ -1159,11 +1159,11 @@ function showGoldenAiAnalysis() {
                             <span class="golden-game-balls-wrap" style="flex:1;min-width:0;">${ballsHtml}</span>
                             <span class="stat-filter-trust-tip-host" style="font-size:var(--bubble-fs-sm);font-weight:700;color:var(--color-text-secondary,#334155);white-space:nowrap;flex-shrink:0;" data-trust-tooltip="${trustTipEsc}">${score}%</span>
                         </div>
-                        <div class="golden-game-meta">
-                            <span>합계 ${sum}</span><span style="width:1px;height:10px;background:var(--color-border,#D5DAE0);margin:0 6px;flex-shrink:0;"></span>
-                            <span>홀짝 ${oddCnt}:${6 - oddCnt}</span><span style="width:1px;height:10px;background:var(--color-border,#D5DAE0);margin:0 6px;flex-shrink:0;"></span>
-                            <span>핫콜 ${hotCnt}:${6 - hotCnt}</span><span style="width:1px;height:10px;background:var(--color-border,#D5DAE0);margin:0 6px;flex-shrink:0;"></span>
-                            <span>연속 ${seqPairs}</span><span style="width:1px;height:10px;background:var(--color-border,#D5DAE0);margin:0 6px;flex-shrink:0;"></span>
+                        <div class="golden-game-meta golden-game-meta-stats">
+                            <span>합계 ${sum}</span><span class="golden-game-meta-sep" aria-hidden="true"></span>
+                            <span>홀짝 ${oddCnt}:${6 - oddCnt}</span><span class="golden-game-meta-sep" aria-hidden="true"></span>
+                            <span>핫콜 ${hotCnt}:${6 - hotCnt}</span><span class="golden-game-meta-sep" aria-hidden="true"></span>
+                            <span>연속 ${seqPairs}</span><span class="golden-game-meta-sep" aria-hidden="true"></span>
                             <span>AC ${ac}</span>
                         </div>
                     </div>
@@ -1191,8 +1191,6 @@ function showGoldenAiAnalysis() {
     const overlay = document.createElement('div');
     overlay.className = 'golden-analysis-overlay';
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
-    /* data-text 속성용: 따옴표만 치환하면 & < 등으로 innerHTML 파싱이 깨져 복사 버튼이 사라지거나 이후 스크립트가 예외를 낼 수 있음 */
-    const escFull = typeof escapeHtmlAttribute === 'function' ? escapeHtmlAttribute(fullText) : String(fullText).replace(/"/g, '&quot;');
     overlay.innerHTML = `
         <div class="golden-analysis-panel">
             <button type="button" class="bubble-close-x" aria-label="닫기" onclick="this.closest('.golden-analysis-overlay').remove()">×</button>
@@ -1200,20 +1198,19 @@ function showGoldenAiAnalysis() {
                 ✨ AI 추천 번호 분석 제${nextRound}회${nextDrawDate ? `&nbsp;&nbsp;<span class="golden-analysis-date-bracket">[&nbsp;<span style="color:var(--color-expense,#C62828);">${nextDrawDateFull}</span> <span style="font-weight:400;color:var(--color-text-secondary,#334155);">추첨 예정</span>&nbsp;]</span>` : ''}
             </div>
             ${gamesHtml}
-            <div class="golden-analysis-foot">
-                <div style="font-weight:700;margin-bottom:6px;color:var(--color-text-primary,#1A1A1A);">📖 분석 항목 안내</div>
-                <table class="golden-foot-table" style="width:100%;border-collapse:collapse;font-size:inherit;line-height:1.5;">
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;width:42px;">합계</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);width:14px;">—</td><td style="padding:2px 0;"><span style="color:var(--color-expense,#C62828);">(${sumRange.start}~${sumRange.end} 적용)</span> 6개 번호의 합</td></tr>
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;">홀짝</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);">—</td><td style="padding:2px 0;"><span style="color:var(--color-accent,#5A6E7A);">(1회~최신회 통계)</span> 홀수:짝수 비율</td></tr>
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;">핫콜</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);">—</td><td style="padding:2px 0;"><span style="color:var(--color-accent,#5A6E7A);">(1회~최신회 통계)</span> 핫:콜 비율</td></tr>
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;">연속</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);">—</td><td style="padding:2px 0;"><span style="color:var(--color-accent,#5A6E7A);">(1회~최신회 통계)</span> 연이은 번호 쌍 수</td></tr>
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;">AC값</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);">—</td><td style="padding:2px 0;"><span style="color:var(--color-accent,#5A6E7A);">(1회~최신회 통계)</span> 번호 간격 다양성 0~10</td></tr>
-                    <tr><td style="white-space:nowrap;font-weight:700;padding:2px 0;">신뢰도</td><td style="padding:2px 4px;color:var(--color-text-muted,#5A6872);">—</td><td class="stat-filter-trust-tip-host" style="padding:2px 0;" data-trust-tooltip="${trustTipEsc}">게임마다 합·홀짝·핫콜·연속·AC 목표가 조금씩 다름(분산). 표시 %는 해당 칸 기준.</td></tr>
-                </table>
+            <div class="golden-analysis-foot golden-analysis-foot-inline" aria-label="분석 항목 안내">
+                <span class="golden-foot-inline-line">
+                    <span aria-hidden="true">📖</span>
+                    합계<span class="golden-foot-em">${sumRange.start}~${sumRange.end}</span>·6개합
+                    <span class="golden-foot-sep">|</span>홀짝·핫콜<span class="golden-foot-muted">(통계)</span>
+                    <span class="golden-foot-sep">|</span>연속<span class="golden-foot-muted">(연번)</span>
+                    <span class="golden-foot-sep">|</span>AC<span class="golden-foot-muted">(0~10)</span>
+                    <span class="golden-foot-sep">|</span><span class="stat-filter-trust-tip-host golden-foot-trust-lbl" data-trust-tooltip="${trustTipEsc}">신뢰도·칸별</span>
+                </span>
             </div>
             <div class="golden-actions">
-                <button type="button" id="goldenCopyTextBtn" data-text="${escFull}">📤 텍스트 복사</button>
                 <button type="button" id="goldenSaveImageBtn">📋 이미지 복사</button>
+                <button type="button" id="goldenClosePanelBtn" class="golden-close-panel-btn">창 닫기</button>
                 <button type="button" class="golden-sms-btn" id="goldenSmsBtn" style="display:none;">💬 문자로 열기</button>
             </div>
         </div>`;
@@ -1231,16 +1228,10 @@ function showGoldenAiAnalysis() {
         });
     }
 
-    const goldenCopyTextBtn = overlay.querySelector('#goldenCopyTextBtn');
-    if (goldenCopyTextBtn) {
-        goldenCopyTextBtn.addEventListener('click', function () {
-            const txt = this.dataset.text != null ? this.dataset.text : fullText;
-            navigator.clipboard.writeText(txt).then(() => {
-                alert('분석 결과가 복사되었습니다! 📋\n카톡이나 문자에 붙여넣어 공유하세요.');
-                overlay.remove();
-            }).catch(function () {
-                alert('클립보드 복사에 실패했습니다. 브라우저에서 클립보드 권한을 허용해 주세요.');
-            });
+    const goldenClosePanelBtn = overlay.querySelector('#goldenClosePanelBtn');
+    if (goldenClosePanelBtn) {
+        goldenClosePanelBtn.addEventListener('click', function () {
+            overlay.remove();
         });
     }
 
@@ -1256,7 +1247,7 @@ function showGoldenAiAnalysis() {
     if (goldenSaveImageBtn) goldenSaveImageBtn.addEventListener('click', function () {
         const contentEl = overlay.querySelector('.golden-analysis-panel');
         if (!contentEl) return;
-        const btns = overlay.querySelector('#goldenCopyTextBtn')?.parentElement;
+        const btns = overlay.querySelector('.golden-actions');
         const closeBtn = overlay.querySelector('.bubble-close-x');
         if (btns) btns.style.display = 'none';
         if (closeBtn) closeBtn.style.display = 'none';
