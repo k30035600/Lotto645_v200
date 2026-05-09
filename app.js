@@ -3745,6 +3745,7 @@ window.addEventListener('load', () => {
             }
             // 전체화면은 헤더 '전체화면' 버튼으로만 전환 (첫 로드 시 자동 전체화면 없음)
             setupFullscreenButton();
+            if (typeof setupLogoBrandContact === 'function') setupLogoBrandContact();
             setupHandheldThreePanelRail();
             // showApologyBubble() — 콘솔에서 수동 호출 가능
         } catch (e) {

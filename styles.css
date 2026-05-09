@@ -561,27 +561,47 @@ a.header-action-btn {
         padding-right: max(8px, env(safe-area-inset-right, 0px));
     }
     .logo-area {
-        flex: 1 1 auto;
+        flex: 1 1 50%;
+        max-width: 50%;
         min-width: 0;
         align-items: center !important;
     }
     .logo-text {
         min-width: 0;
+        flex: 1 1 auto;
     }
     .logo-text h1 {
-        font-size: clamp(0.55rem, 2.55vw, 1.05rem) !important;
+        font-size: clamp(0.65rem, 2.85vw, 1rem) !important;
         line-height: 1.12;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        display: flex;
+        align-items: baseline;
+        min-width: 0;
+    }
+    .logo-title-short {
+        display: inline-flex !important;
+        align-items: baseline;
+        min-width: 0;
+        max-width: 100%;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em;
+    }
+    .logo-brand-clickable {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(255, 255, 255, 0.12);
+        outline: none;
+    }
+    .logo-title-short-lotto {
+        flex-shrink: 0;
     }
     .logo-title-long {
         display: none !important;
-    }
-    .logo-title-short {
-        display: inline !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.03em;
     }
     .logo-tagline {
         display: none !important;
@@ -829,18 +849,19 @@ a.header-action-btn {
 
     .game-panel .filter-dropdown {
         flex: 1 1 0%;
-        min-width: 0;
+        min-width: 72px;
         max-width: none;
-        font-size: clamp(0.56rem, 4.8cqi, 0.7rem);
+        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
     }
 
     .game-panel .zone-top .option-filter-sum {
-        width: clamp(26px, 12cqi, 42px);
-        font-size: clamp(0.55rem, 4.5cqi, 0.68rem);
+        width: clamp(30px, 14cqi, 46px);
+        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
+        font-weight: 600;
     }
 
     .game-panel .zone-top .option-filter-tilde {
-        font-size: clamp(0.62rem, 4.5cqi, 0.78rem);
+        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
     }
 
     .game-panel .option-filter-host,
@@ -1311,6 +1332,8 @@ input.result-filter-text {
     flex-shrink: 1;
     min-width: 0;
     width: clamp(24px, 11cqi, 46px);
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
 .option-filter-tilde {

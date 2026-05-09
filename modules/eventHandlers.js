@@ -594,6 +594,25 @@ function setupFooterToggle() {
     }
 }
 
+function setupLogoBrandContact() {
+    const el = document.getElementById('logoBrandContact');
+    if (!el) return;
+    var msg = '문의 사항이 있으면 010-3003-5600으로 연락주세요!';
+    function show() {
+        alert(msg);
+    }
+    el.addEventListener('click', function (e) {
+        e.preventDefault();
+        show();
+    });
+    el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            show();
+        }
+    });
+}
+
 function setupFullscreenButton() {
     const btn = document.getElementById('fullscreenBtn');
     if (!btn) return;
@@ -789,6 +808,7 @@ if (typeof window !== "undefined") {
     window.setupDeleteSelectedButton = setupDeleteSelectedButton;
     window.setupRangeTypeSelectors = setupRangeTypeSelectors;
     window.setupFooterToggle = setupFooterToggle;
+    window.setupLogoBrandContact = setupLogoBrandContact;
     window.setupFullscreenButton = setupFullscreenButton;
     window.setupResultFilterListeners = setupResultFilterListeners;
     window.setupPanelLabelToggle = setupPanelLabelToggle;
