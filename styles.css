@@ -839,34 +839,24 @@ a.header-action-btn {
     }
 }
 
-/*
- * 게임 열이 좁을 때: 가로 스크롤 없이 cqi·flex로 한 줄 유지에 가깝게 축소.
- */
 @container game-col (max-width: 400px) {
     .number-grid-container {
         column-gap: 2px;
         row-gap: 0;
     }
 
-    #centerNavBar .center-nav-actions-row {
+    #centerNavBar.center-nav-bar {
         flex-wrap: nowrap;
-        overflow-x: hidden;
+        overflow-x: auto;
         min-width: 0;
+        -webkit-overflow-scrolling: touch;
     }
 
-    #centerNavBar .center-nav-actions-row .center-nav-link {
+    #centerNavBar.center-nav-bar > .center-nav-link {
         flex: 1 1 0%;
         min-width: 0;
         padding: 6px 2px;
         font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
-    }
-
-    /* 2:1 중 왼쪽(2) 블록: 컨테이너 너비 기준으로 상호명 가능한 한 크게 */
-    .center-nav-brand {
-        font-size: clamp(0.9rem, 8.8cqi, 1.58rem);
-        font-weight: 800;
-        line-height: 1.12;
-        letter-spacing: -0.045em;
     }
 
     /* 최소·평균·최대 입력: 홀짝/핫콜 등 select와 동일 clamp (모바일 자동 확대·시각 차이 완화) */
@@ -1777,12 +1767,26 @@ input.result-filter-text {
 }
 
 .result-summary-box--bar #deleteSelectedBtn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.92) !important;
+    opacity: 1;
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
 }
 .result-summary-box--bar #saveBtn:disabled {
-    opacity: 0.85;
-    filter: brightness(1.08);
+    opacity: 1;
+    filter: none;
+    color: #fff !important;
+    background: rgba(90, 110, 122, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
+}
+.result-summary-box--bar #saveBtn:not(:disabled),
+.result-summary-box--bar #deleteSelectedBtn:not(:disabled) {
+    font-weight: 800;
+    -webkit-font-smoothing: antialiased;
 }
 
 .result-summary-box--bar .result-summary-actions-mid {
@@ -1829,7 +1833,8 @@ input.result-filter-text {
     max-width: 100%;
     padding-left: 5px;
     padding-right: 5px;
-    font-size: 0.74rem;
+    font-size: 0.8rem;
+    letter-spacing: -0.02em;
 }
 /* 목록 행 deleteCheckbox와 동일: 18px 고정, resultLine gap 6px과 맞춤 */
 .result-summary-box--bar .result-summary-checkbox-col {
@@ -1994,54 +1999,34 @@ input.result-filter-text {
 .result-summary-box #deleteSelectedBtn:disabled {
     cursor: default;
 }
-/* 게임공 상단: 한 줄 — 좌(주)명 flex:2 · 우 5등분(행운·top5·당첨·도움·종료) flex:1 */
-.center-nav-bar {
+/* 게임공 상단: 행운번호 받기·Perfect top 5·최근당첨번호 링크 3개 전폭 균등 */
+#centerNavBar.center-nav-bar {
     display: flex;
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
     padding: 6px 8px;
     margin-bottom: 4px;
     box-sizing: border-box;
     min-width: 0;
+    width: 100%;
 }
 
-.center-nav-brand {
-    flex: 2 1 0%;
-    min-width: 0;
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: var(--color-text-primary, #1a1a1a);
-    letter-spacing: -0.03em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-flex;
-    align-items: center;
-    line-height: 1.2;
-}
-
-.center-nav-actions-row {
-    flex: 1 1 0%;
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    gap: 4px;
-    min-width: 0;
-}
-
-.center-nav-actions-row > .center-nav-link {
+#centerNavBar.center-nav-bar > .center-nav-link {
     flex: 1 1 0%;
     min-width: 0;
+    white-space: normal;
+    line-height: 1.25;
+    word-break: keep-all;
 }
 
 .center-nav-link {
-    flex: 1;
     color: #fff;
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.78rem;
-    padding: 5px 0;
+    font-size: 0.72rem;
+    padding: 5px 4px;
     border-radius: 4px;
     transition: color 0.2s, background 0.2s, opacity 0.2s;
     cursor: pointer;
@@ -2049,6 +2034,9 @@ input.result-filter-text {
     text-align: center;
     background: var(--color-accent);
     box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .center-nav-link:hover {
@@ -2754,29 +2742,34 @@ input[type=number] {
     border-color: var(--color-border, #cfd6dd);
 }
 
-/* 헤더(요약·번호저장·전체선택) 고정, Lotto023 행만 스크롤 */
+/* 헤더는 sticky, 스크롤은 영역 전체 → 세로 스크롤바가 헤더·목록 같은 콘텐츈폭을 씀(체크 열 정렬) */
 #resultScrollArea.result-scroll-area {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    overflow: hidden;
     overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+#resultScrollArea.result-scroll-area > .result-summary-box--bar {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    flex-shrink: 0;
 }
 
 #resultContainer {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 1 1 auto;
-    min-height: 0;
+    flex: 0 0 auto;
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-gutter: stable;
 }
 
 /* 저장공 게임 행: 당첨공 목록(.round-number-line)과 동일한 세로 밀도(22px 공 기준 24px 줄) */
