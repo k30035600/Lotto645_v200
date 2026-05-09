@@ -722,6 +722,12 @@ a.header-action-btn {
     container-name: game-col;
 }
 
+/* 게임 패널: 선택공·게임공 공통 직경 토큰(9열 겹침 방지), 6공 행 너비 동기화 */
+.game-panel {
+    --panel-pick-ball: var(--ball-size);
+    --game-six-balls-width: calc(6 * var(--panel-pick-ball) + 5 * var(--game-six-ball-gap));
+}
+
 /* 패널 열 폭이 좁을 때: 해당 패널 내부에서만 글자·번호공·여백 축소(뷰포트와 독립) */
 @container stats-col (max-width: 400px) {
     #statsPanel {
@@ -784,6 +790,13 @@ a.header-action-btn {
     }
 }
 
+@container game-col (min-width: 421px) {
+    .game-panel {
+        /* 가로 배치: 선택공 열 ≈ 5/12 — 9열에 맞게 직경 상한 */
+        --panel-pick-ball: min(var(--ball-size), max(11px, calc((100cqi * 0.42 - 56px) / 9)));
+    }
+}
+
 @container game-col (max-width: 420px) {
     .game-panel {
         font-size: 0.95rem;
@@ -791,6 +804,8 @@ a.header-action-btn {
         --ball-font: 0.74rem;
         --ball-size-sm: 18px;
         --ball-font-sm: 0.7rem;
+        /* 세로 스택: 선택공 폭 ≈ 패널 전체 */
+        --panel-pick-ball: min(var(--ball-size), max(11px, calc((100cqi - 52px) / 9)));
     }
 
     /* 선택공·게임공 가로 배치 시 6개 번호공이 overflow-x 로 잘림 → 세로 스택으로 게임열 전체 폭 사용 */
@@ -831,6 +846,7 @@ a.header-action-btn {
         --ball-font: 0.68rem;
         --ball-size-sm: 17px;
         --ball-font-sm: 0.65rem;
+        --panel-pick-ball: min(var(--ball-size), max(10px, calc((100cqi - 48px) / 9)));
     }
 
     .panel-box-game .game-panel h2 {
@@ -847,8 +863,8 @@ a.header-action-btn {
 
 @container game-col (max-width: 400px) {
     .number-grid-container {
-        column-gap: 2px;
-        row-gap: 0;
+        column-gap: 4px;
+        row-gap: 1px;
     }
 
     #centerNavBar.center-nav-bar {
@@ -2084,6 +2100,10 @@ button.center-nav-link.center-nav-link--btn {
     min-height: 0;
 }
 
+.game-panel .number-grid-container {
+    column-gap: 4px;
+}
+
 #gridGameRow > #gameBox {
     flex: 7 1 0%;
     min-width: 0;
@@ -2444,14 +2464,18 @@ input[type=number] {
     font-size: clamp(0.5rem, calc(var(--ball-size-sm) * 0.41), 0.95rem);
 }
 
-/* 게임 패널: 선택공(1~45)과 G1~G5 게임공(검정 ? 포함) 직경을 --ball-size로 통일 */
+/* 게임 패널: 선택공(1~45)·G1~G5 게임공 직경 동일 — --panel-pick-ball(9열 상한·겹침 방지) */
 .game-panel #numberGridSection .number-grid-container .stat-ball.stat-ball--sm,
 .game-panel #gameBox .game-balls-wrap .stat-ball.stat-ball--sm {
-    width: var(--ball-size);
-    min-width: var(--ball-size);
-    max-width: var(--ball-size);
-    max-height: var(--ball-size);
-    font-size: clamp(0.5rem, calc(var(--ball-size) * 0.41), 0.95rem);
+    width: var(--panel-pick-ball);
+    min-width: 0;
+    max-width: var(--panel-pick-ball);
+    max-height: var(--panel-pick-ball);
+    aspect-ratio: 1;
+    height: auto;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    font-size: clamp(0.42rem, calc(var(--panel-pick-ball) * 0.42), 0.95rem);
 }
 
 /* 동행복권 컬러 클래스 */
