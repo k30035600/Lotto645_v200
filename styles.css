@@ -18,7 +18,7 @@
     --ball-font-sm: 0.8rem;
     /* 6개 선택공 한 줄 너비(게임열·저장열 정렬용). rem 고정 금지 → 시스템 글자 확대 시 가로 폭증 방지 */
     --game-six-ball-gap: 2px;
-    --game-six-balls-width: calc(6 * var(--ball-size-sm) + 5 * var(--game-six-ball-gap));
+    --game-six-balls-width: calc(6 * var(--ball-size) + 5 * var(--game-six-ball-gap));
 
     /* 말풍선·오버레이 카드 통일 */
     --bubble-fs: 0.875rem;
@@ -561,9 +561,9 @@ a.header-action-btn {
         padding-right: max(8px, env(safe-area-inset-right, 0px));
     }
     .logo-area {
-        flex: 1 1 50%;
-        max-width: 50%;
+        flex: 2 1 0%;
         min-width: 0;
+        max-width: none;
         align-items: center !important;
     }
     .logo-text {
@@ -610,7 +610,11 @@ a.header-action-btn {
         display: none !important;
     }
     .header-nav {
-        flex-shrink: 0;
+        flex: 1 1 0%;
+        min-width: 0;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
     }
     .header-nav > div {
         flex-wrap: nowrap !important;
@@ -2204,7 +2208,7 @@ button.center-nav-link.center-nav-link--btn {
     box-sizing: border-box;
 }
 
-/* 게임 6공 줄: 저장행·선택공과 동일 --game-six-balls-width(6×--ball-size-sm) */
+/* 게임 6공 줄: 저장행과 동일 토큰 — 6×--ball-size */
 #gameBox .game-balls-wrap {
     width: var(--game-six-balls-width);
     max-width: min(var(--game-six-balls-width), 100%);
@@ -2438,6 +2442,16 @@ input[type=number] {
     height: auto;
     aspect-ratio: 1;
     font-size: clamp(0.5rem, calc(var(--ball-size-sm) * 0.41), 0.95rem);
+}
+
+/* 게임 패널: 선택공(1~45)과 G1~G5 게임공(검정 ? 포함) 직경을 --ball-size로 통일 */
+.game-panel #numberGridSection .number-grid-container .stat-ball.stat-ball--sm,
+.game-panel #gameBox .game-balls-wrap .stat-ball.stat-ball--sm {
+    width: var(--ball-size);
+    min-width: var(--ball-size);
+    max-width: var(--ball-size);
+    max-height: var(--ball-size);
+    font-size: clamp(0.5rem, calc(var(--ball-size) * 0.41), 0.95rem);
 }
 
 /* 동행복권 컬러 클래스 */
