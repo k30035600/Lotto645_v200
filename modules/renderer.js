@@ -1201,18 +1201,21 @@ function showGoldenAiAnalysis() {
     if (goldenSaveImageBtn) goldenSaveImageBtn.addEventListener('click', function () {
         const contentEl = overlay.querySelector('.golden-analysis-panel');
         if (!contentEl) return;
-        const btns = overlay.querySelector('.golden-actions');
-        const closeBtn = overlay.querySelector('.bubble-close-x');
-        if (btns) btns.style.display = 'none';
-        if (closeBtn) closeBtn.style.display = 'none';
-        import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').catch(() => {}).then(() => {
+        const runCapture = function () {
+            if (typeof captureAndSave !== 'function') {
+                alert('이미지 복사를 사용할 수 없습니다. 페이지를 새로고침 후 다시 시도하세요.');
+                return;
+            }
+            captureAndSave(contentEl);
+        };
+        import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').catch(function () {}).then(function () {
             if (typeof html2canvas === 'undefined') {
                 const script = document.createElement('script');
                 script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                script.onload = () => captureAndSave(contentEl, btns, closeBtn, overlay);
+                script.onload = runCapture;
                 document.head.appendChild(script);
             } else {
-                captureAndSave(contentEl, btns, closeBtn, overlay);
+                runCapture();
             }
         });
     });
@@ -1265,8 +1268,42 @@ function showPerfectBobAnalysis(totalCollected, topFive) {
             <div class="golden-analysis-foot" style="margin-top:12px;font-size:var(--bubble-fs-sm);color:var(--color-text-muted,#5A6872);">
                 번호저장 시 기존과 같이 <b>Lotto023</b>에만 기록됩니다.
             </div>
+            <div class="golden-actions">
+                <button type="button" id="perfectBobSaveImageBtn">📋 이미지 복사</button>
+                <button type="button" id="perfectBobClosePanelBtn" class="golden-close-panel-btn">창 닫기</button>
+            </div>
         </div>`;
     document.body.appendChild(overlay);
+    const perfectBobClosePanelBtn = overlay.querySelector('#perfectBobClosePanelBtn');
+    if (perfectBobClosePanelBtn) {
+        perfectBobClosePanelBtn.addEventListener('click', function () {
+            overlay.remove();
+        });
+    }
+    const perfectBobSaveImageBtn = overlay.querySelector('#perfectBobSaveImageBtn');
+    if (perfectBobSaveImageBtn) {
+        perfectBobSaveImageBtn.addEventListener('click', function () {
+            const contentEl = overlay.querySelector('.golden-analysis-panel');
+            if (!contentEl) return;
+            const runCapture = function () {
+                if (typeof captureAndSave !== 'function') {
+                    alert('이미지 복사를 사용할 수 없습니다. 페이지를 새로고침 후 다시 시도하세요.');
+                    return;
+                }
+                captureAndSave(contentEl);
+            };
+            import('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js').catch(function () {}).then(function () {
+                if (typeof html2canvas === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                    script.onload = runCapture;
+                    document.head.appendChild(script);
+                } else {
+                    runCapture();
+                }
+            });
+        });
+    }
     overlay.querySelectorAll('.stat-filter-trust-tip-host').forEach(function (el) {
         if (typeof applyStatFilterTrustTooltip === 'function') applyStatFilterTrustTooltip(el);
     });

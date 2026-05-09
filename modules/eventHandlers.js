@@ -456,7 +456,11 @@ function setupDeleteSelectedButton() {
                 });
 
                 try {
-                    await removeLotto023ItemsFromLocal(itemsToDel);
+                    const rm = typeof removeLotto023ItemsFromLocal === 'function'
+                        ? removeLotto023ItemsFromLocal
+                        : window.removeLotto023ItemsFromLocal;
+                    if (typeof rm !== 'function') throw new Error('삭제 모듈이 로드되지 않았습니다.');
+                    await rm(itemsToDel);
                     await loadAndDisplayResults();
                     updateSaveBoxState();
                     alert(`선택한 ${checkedBoxes.length}개의 기록이 삭제되었습니다.`);

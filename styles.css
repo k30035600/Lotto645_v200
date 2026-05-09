@@ -786,6 +786,26 @@ a.header-action-btn {
         --ball-font-sm: 0.7rem;
     }
 
+    /* 선택공·게임공 가로 배치 시 6개 번호공이 overflow-x 로 잘림 → 세로 스택으로 게임열 전체 폭 사용 */
+    #gridGameRow {
+        flex-direction: column;
+        align-items: stretch;
+        overflow-x: visible;
+        gap: 10px;
+    }
+
+    #gridGameRow > #numberGridSection {
+        flex: 0 0 auto;
+        width: 100%;
+        min-width: 0;
+    }
+
+    #gridGameRow > #gameBox {
+        flex: 0 0 auto;
+        width: 100%;
+        min-width: 0;
+    }
+
     .panel-box-game .game-panel h2 {
         font-size: 1.05rem;
         padding: 11px 14px;
@@ -827,17 +847,26 @@ a.header-action-btn {
         row-gap: 0;
     }
 
-    #centerNavBar {
+    #centerNavBar .center-nav-links {
         flex-wrap: nowrap;
         overflow-x: hidden;
         min-width: 0;
     }
 
-    #centerNavBar .center-nav-link {
+    #centerNavBar .center-nav-links .center-nav-link {
         flex: 1 1 0%;
         min-width: 0;
         padding: 6px 2px;
         font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
+    }
+
+    .center-nav-brand {
+        font-size: clamp(0.68rem, 6cqi, 0.82rem);
+    }
+
+    .center-nav-header-btn {
+        font-size: clamp(0.58rem, 5cqi, 0.72rem);
+        padding: 5px 6px;
     }
 
     .game-panel .option-filter-row {
@@ -854,10 +883,10 @@ a.header-action-btn {
         font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
     }
 
-    /* 평균값(가운데 칸) 등: 폰트만 축소, 입력칸 너비는 기본(40px) 유지 */
+    /* 합계 min/평균/max: 드롭다운과 동일 폰트 굵기·크기(cqi), 너비는 고정으로 잘림 방지 */
     .game-panel .zone-top .option-filter-sum {
-        font-size: clamp(0.58rem, 5cqi, 0.66rem);
-        font-weight: 600;
+        font-size: clamp(0.56rem, 5.2cqi, 0.72rem);
+        font-weight: 400;
     }
 
     .game-panel .zone-top .option-filter-tilde {
@@ -1329,12 +1358,21 @@ input.result-filter-text {
 }
 
 .game-panel .zone-top .option-filter-sum {
-    flex-shrink: 0;
-    min-width: 40px;
-    width: 40px;
+    flex: 0 0 auto;
+    min-width: 2.75rem;
+    width: 2.75rem;
+    max-width: 3rem;
     box-sizing: border-box;
-    font-size: 0.64rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    font-weight: 400;
+    font-family: inherit;
+}
+
+/* AC 드롭다운: 한 줄에서 잘리지 않도록 최소 너비 확보 */
+.game-panel .zone-top #filterAC.filter-dropdown {
+    flex: 0 0 auto;
+    min-width: 52px;
+    max-width: 86px;
 }
 
 .option-filter-tilde {
@@ -1939,6 +1977,74 @@ input.result-filter-text {
 .result-summary-box #deleteSelectedBtn:disabled {
     cursor: default;
 }
+/* 게임공 상단: 2:1 (회사명 : 도움말·종료) + 그 아래 행운번호·BoB·최근당첨 */
+.center-nav-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+    margin-bottom: 4px;
+    box-sizing: border-box;
+}
+
+.center-nav-bar-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+    min-width: 0;
+}
+
+.center-nav-brand {
+    flex: 2 1 0%;
+    min-width: 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--color-text-primary, #1a1a1a);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.center-nav-header-actions {
+    flex: 1 1 0%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 0;
+}
+
+.center-nav-header-btn {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--input-border, #e0e0e0);
+    background: var(--color-bg-white, #fff);
+    color: var(--color-text-primary, #263238);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    line-height: 1.2;
+}
+
+.center-nav-header-btn:hover {
+    opacity: 0.9;
+    background: var(--color-bg-light, #f0f2f5);
+}
+
+.center-nav-links {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+}
+
 .center-nav-link {
     flex: 1;
     color: #fff;

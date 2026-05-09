@@ -2379,27 +2379,46 @@ function applyReceiveLuckyNumbersEnvironment() {
     AppState.goldenNumbers = new Set(topNumbers);
 }
 
-function captureAndSave(el, btns, closeBtn, overlay) {
-    html2canvas(el, { backgroundColor: '#fff', scale: 2 }).then(canvas => {
-        if (btns) btns.style.display = '';
-        if (closeBtn) closeBtn.style.display = '';
+function captureAndSave(el) {
+    if (!el) {
+        alert('이미지 생성에 실패했습니다.');
+        return;
+    }
+    if (typeof html2canvas === 'undefined') {
+        alert('이미지 생성에 실패했습니다.');
+        return;
+    }
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('.golden-actions, .bubble-close-x').forEach(function (n) {
+        n.style.display = 'none';
+    });
+    clone.style.cssText = 'position:fixed;left:-99999px;top:0;margin:0;visibility:visible;' +
+        'max-height:none;height:auto;overflow:visible;transform:none;box-shadow:none;';
+    document.body.appendChild(clone);
+
+    html2canvas(clone, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        logging: false,
+        useCORS: true
+    }).then(function (canvas) {
+        if (clone.parentNode) clone.parentNode.removeChild(clone);
         canvas.toBlob(function (blob) {
             if (!blob) { alert('이미지 생성에 실패했습니다.'); return; }
             if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
                 navigator.clipboard.write([
                     new ClipboardItem({ 'image/png': blob })
-                ]).then(() => {
+                ]).then(function () {
                     alert('이미지가 클립보드에 복사되었습니다! 📋\n카톡이나 메신저에 Ctrl+V로 붙여넣으세요.');
-                }).catch(() => {
+                }).catch(function () {
                     fallbackDownload(canvas);
                 });
             } else {
                 fallbackDownload(canvas);
             }
         }, 'image/png');
-    }).catch(() => {
-        if (btns) btns.style.display = '';
-        if (closeBtn) closeBtn.style.display = '';
+    }).catch(function () {
+        if (clone.parentNode) clone.parentNode.removeChild(clone);
         alert('이미지 생성에 실패했습니다.');
     });
 }

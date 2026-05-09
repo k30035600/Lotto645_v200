@@ -314,18 +314,16 @@ function lotto023ResolvedSetGameLocal(g) {
 }
 
 /**
- * 서버 delete-lotto023 와 동일: 회차·세트·게임 문자열 일치 시 삭제 대상
+ * 삭제 체크박스 데이터와 Lotto023 행 매칭 (세트·게임은 lotto023ResolvedSetGameLocal 기준 숫자 비교)
  */
 function lotto023DeleteItemMatches(item, g) {
-    const r = String(g.round ?? g['회차'] ?? '');
-    if (String(item.round) !== r) return false;
-    const sRaw = g.set !== undefined && g.set !== null && g.set !== '' ? g.set : g['세트'];
-    const gRaw = g.game !== undefined && g.game !== null && g.game !== '' ? g.game : g['게임'];
-    const setVal = sRaw === undefined || sRaw === null ? '' : String(sRaw);
-    const gameVal = gRaw === undefined || gRaw === null ? '' : String(gRaw);
-    if (String(item.game) !== gameVal) return false;
-    if (String(item.set ?? '') !== setVal) return false;
-    return true;
+    if (String(item.round) !== String(g.round ?? g['회차'] ?? '')) return false;
+    const sg = lotto023ResolvedSetGameLocal(g);
+    const ig = parseInt(String(item.game != null ? item.game : ''), 10);
+    if (Number.isNaN(ig) || ig !== sg.gameNum) return false;
+    const isetRaw = item.set != null && String(item.set).trim() !== '' ? parseInt(String(item.set), 10) : NaN;
+    const iset = Number.isNaN(isetRaw) ? sg.setNum : isetRaw;
+    return iset === sg.setNum;
 }
 
 /**
@@ -664,19 +662,16 @@ async function loadAndDisplayResults() {
                 const roundTabLabel = '[' + roundForHeaderButton + ']';
                 summaryContainer.innerHTML = `
                     <button type="button" id="resultHeaderRoundBtn" class="result-header-tab result-header-tab--round${roundTabActive}" aria-label="${roundForHeaderButton}회. ${roundScopeTip}" title="${roundScopeTip}">${roundTabLabel}</button>
-                    <div class="result-summary-cell-mid" role="group" aria-label="BoB 순위 표시 · 당첨 등위">
-                        <div class="result-summary-mid-slot result-summary-mid-slot--bob">
-                            <button type="button" id="resultHeaderBobBtn" class="result-header-tab result-header-tab--bob${bobTabActive}" title="미추첨: BoB 켜면 BoB/행운 모드 행 핫·평균합 순+순위. BoB 끄면 세트↓·게임↑. 추첨 완료: BoB는 정성도·순위 토글.">BoB</button>
-                        </div>
+                    <div class="result-summary-cell-mid" role="group" aria-label="등위 · BoB 정렬">
                         <div class="result-summary-mid-slot result-summary-mid-slot--rank">
                             <span class="result-summary-hcol result-summary-hcol--rank" title="당첨 등수">등위</span>
                         </div>
-                        <span class="result-summary-mid-slash" aria-hidden="true">/</span>
+                        <div class="result-summary-mid-slot result-summary-mid-slot--bob">
+                            <button type="button" id="resultHeaderBobBtn" class="result-header-tab result-header-tab--bob${bobTabActive}" title="미추첨: BoB 켜면 BoB/행운 모드 행 핫·평균합 순+순위. BoB 끄면 세트↓·게임↑. 추첨 완료: BoB는 정성도·순위 토글.">BoB</button>
+                        </div>
                     </div>
                     <div class="result-summary-main result-summary-stats-cell${statsExtraClass}">
                         <span class="result-summary-game-n">게임수:${barGameCount}게임</span>
-                        <span class="result-summary-sep"> · </span>
-                        <span class="result-summary-result-s">결과통계:${barResultStats}</span>
                     </div>`;
                 summaryContainer.classList.toggle('result-summary-left--pending', isPendingRoundSummary);
                 summaryContainer.classList.toggle('result-summary-left--filtered-round', true);
@@ -698,9 +693,9 @@ async function loadAndDisplayResults() {
 
                 if (barBubbleClick) {
                     summaryContainer.style.cursor = 'default';
-                    summaryContainer.title = '결과통계 영역 클릭: 회차별 분석 말풍선';
+                    summaryContainer.title = '게임수 영역 클릭: 회차별 분석 말풍선';
                     summaryContainer.onclick = function (ev) {
-                        if (ev.target.closest('.result-summary-stats-cell')) {
+                        if (ev.target.closest('.result-summary-main')) {
                             showResultAnalysisBubble(summary, displayData, sortedGroups);
                         }
                     };
@@ -916,9 +911,10 @@ async function loadAndDisplayResults() {
                 deleteCheckbox.type = 'checkbox';
                 deleteCheckbox.className = 'result-delete-checkbox';
 
-                deleteCheckbox.dataset.round = game.round;
-                deleteCheckbox.dataset.set = (game.set !== undefined ? game.set : game['세트']) || '';
-                deleteCheckbox.dataset.game = game.game;
+                const sgChk = lotto023ResolvedSetGameLocal(game);
+                deleteCheckbox.dataset.round = String(game.round ?? game['회차'] ?? '');
+                deleteCheckbox.dataset.set = String(sgChk.setNum);
+                deleteCheckbox.dataset.game = String(sgChk.gameNum);
 
                 resultBallsContainer.appendChild(ballsCap);
                 resultBallsContainer.appendChild(slot7);
@@ -1309,4 +1305,5 @@ async function saveGamesToCSV() {
 
 if (typeof window !== "undefined") {
     window.saveGamesToCSV = saveGamesToCSV;
+    window.removeLotto023ItemsFromLocal = removeLotto023ItemsFromLocal;
 }
