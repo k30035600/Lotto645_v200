@@ -569,8 +569,8 @@ a.header-action-btn {
         min-width: 0;
     }
     .logo-text h1 {
-        font-size: clamp(0.92rem, 4vw, 1.1rem) !important;
-        line-height: 1.15;
+        font-size: clamp(0.55rem, 2.55vw, 1.05rem) !important;
+        line-height: 1.12;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;

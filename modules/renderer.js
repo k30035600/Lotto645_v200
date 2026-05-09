@@ -3,23 +3,6 @@
  * 화면 렌더링 및 UI 컴포넌트 생성 관련 함수들
  */
 
-/** 터치·휴대 단말에서만 문자(sms:) 버튼 표시용 */
-function isLikelyMobileForSms() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
-}
-
-/**
- * 문자 앱 작성 화면만 연다(수신자는 사용자가 선택). iOS는 sms:&body=, 그 외는 sms:?body= 가 잘 맞는 경우가 많다.
- * 본문이 길면 일부만 넣고 나머지는「텍스트 복사」 안내.
- */
-function openSmsComposerWithBody(plainText) {
-    var t = plainText == null ? '' : String(plainText);
-    if (t.length > 1800) t = t.slice(0, 1800) + '\n…(이하 생략·전체는「텍스트 복사」)';
-    var enc = encodeURIComponent(t);
-    var href = /iPhone|iPad|iPod/i.test(navigator.userAgent || '') ? ('sms:&body=' + enc) : ('sms:?body=' + enc);
-    window.location.href = href;
-}
-
 /** 공 색상 가져오기 */
 function getBallColorClass(num) {
     if (!num) return "";
@@ -1098,10 +1081,6 @@ function showGoldenAiAnalysis() {
     }
     const baseTc = typeof buildStatFilterTrustContextFromDom === 'function' ? buildStatFilterTrustContextFromDom() : null;
     const tc = AppState._luckyStatTrustContext;
-    const oeFilter = baseTc ? baseTc.oddEven : (document.getElementById('filterOddEven')?.value || 'none');
-    const hcFilter = baseTc ? baseTc.hotCold : (document.getElementById('filterHotCold')?.value || 'none');
-    const seqFilter = baseTc ? baseTc.consecutive : (document.getElementById('filterConsecutive')?.value || 'none');
-    const acFilter = baseTc ? baseTc.ac : (document.getElementById('filterAC')?.value || 'none');
     const sumRange = baseTc ? baseTc.sumRange : getSumRange();
     const hotForMeta = (baseTc && baseTc.hot && baseTc.hot.length)
         ? baseTc.hot
@@ -1111,9 +1090,6 @@ function showGoldenAiAnalysis() {
     const divOffGolden = AppState._luckyDiversifyRunOffset != null ? AppState._luckyDiversifyRunOffset : 0;
 
     let gamesHtml = '';
-    let fullText = `✨ AI 추천 번호 분석 제${nextRound}회`;
-    if (nextDrawDate) fullText += `  [ ${nextDrawDate} 추첨 예정 ]`;
-    fullText += `\n${'─'.repeat(30)}\n`;
 
     let displayIdx = 0;
     for (let i = 0; i < 5; i++) {
@@ -1170,23 +1146,10 @@ function showGoldenAiAnalysis() {
                 </div>
             </div>`;
 
-        const gameLinePrefix = `GAME ${displayIdx}: `;
-        const metaPlain = `합:${sum} 홀짝:${oddCnt}:${6 - oddCnt} 핫콜:${hotCnt}:${6 - hotCnt} 연속:${seqPairs} AC:${ac} 신뢰:${score}%`;
-        fullText += `${gameLinePrefix}${sorted.join(', ')}\n`;
-        fullText += `${' '.repeat(gameLinePrefix.length)}${metaPlain}\n`;
     }
     if (displayIdx === 0) {
         gamesHtml = `<div style="text-align:center;padding:16px;color:var(--color-text-muted,#5A6872);font-size:var(--bubble-fs);">100% 신뢰도 조합이 없습니다.</div>`;
     }
-
-    const filterInfo = [];
-    if (oeFilter !== 'none') filterInfo.push(`홀짝 ${oeFilter.replace('-', ':')}`);
-    if (hcFilter !== 'none') filterInfo.push(`핫콜 ${hcFilter.replace('-', ':')}`);
-    if (seqFilter !== 'none') filterInfo.push(`연속 ${seqFilter}`);
-    if (acFilter !== 'none') filterInfo.push(`AC ${acFilter}`);
-    filterInfo.push(`합계 ${sumRange.start}~${sumRange.end}`);
-    filterInfo.push('게임1~5 합·필터 분산(재미)');
-    fullText += `${'─'.repeat(30)}\n적용필터: ${filterInfo.join(' | ')}\n`;
 
     const overlay = document.createElement('div');
     overlay.className = 'golden-analysis-overlay';
@@ -1211,7 +1174,6 @@ function showGoldenAiAnalysis() {
             <div class="golden-actions">
                 <button type="button" id="goldenSaveImageBtn">📋 이미지 복사</button>
                 <button type="button" id="goldenClosePanelBtn" class="golden-close-panel-btn">창 닫기</button>
-                <button type="button" class="golden-sms-btn" id="goldenSmsBtn" style="display:none;">💬 문자로 열기</button>
             </div>
         </div>`;
 
@@ -1232,14 +1194,6 @@ function showGoldenAiAnalysis() {
     if (goldenClosePanelBtn) {
         goldenClosePanelBtn.addEventListener('click', function () {
             overlay.remove();
-        });
-    }
-
-    const goldenSmsBtn = overlay.querySelector('#goldenSmsBtn');
-    if (goldenSmsBtn && isLikelyMobileForSms()) {
-        goldenSmsBtn.style.display = '';
-        goldenSmsBtn.addEventListener('click', function () {
-            openSmsComposerWithBody(fullText);
         });
     }
 
@@ -1274,12 +1228,9 @@ function showPerfectBobAnalysis(totalCollected, topFive) {
     const tc = AppState._luckyStatTrustContext;
     const trustTipEsc = escapeHtmlAttribute(getStatFilterTrustScoreTooltip());
     let rowsHtml = '';
-    let bobSmsText = 'Perfect · BoB 제' + nextRound + '회\n';
-    bobSmsText += '수집 ' + totalCollected + '게임 중 상위 5\n\n';
     for (let i = 0; i < topFive.length; i++) {
         const item = topFive[i];
         const sorted = [...item.numbers].sort(function (a, b) { return a - b; });
-        bobSmsText += 'G' + (i + 1) + ': ' + sorted.join(', ') + '  신뢰:' + item.trust + '%  풀순위:' + item.poolRank + '\n';
         const ballsHtml = sorted.map(function (n) {
             return `<span class="stat-ball stat-ball--sm ${getBallColorClass(n)}" style="margin:0 2px;">${n}</span>`;
         }).join('');
@@ -1314,9 +1265,6 @@ function showPerfectBobAnalysis(totalCollected, topFive) {
             <div class="golden-analysis-foot" style="margin-top:12px;font-size:var(--bubble-fs-sm);color:var(--color-text-muted,#5A6872);">
                 번호저장 시 기존과 같이 <b>Lotto023</b>에만 기록됩니다.
             </div>
-            <div class="golden-actions">
-                <button type="button" class="golden-sms-btn" id="perfectBobSmsBtn" style="display:none;">💬 문자로 열기</button>
-            </div>
         </div>`;
     document.body.appendChild(overlay);
     overlay.querySelectorAll('.stat-filter-trust-tip-host').forEach(function (el) {
@@ -1331,13 +1279,6 @@ function showPerfectBobAnalysis(totalCollected, topFive) {
         });
     }
 
-    const perfectBobSmsBtn = overlay.querySelector('#perfectBobSmsBtn');
-    if (perfectBobSmsBtn && isLikelyMobileForSms()) {
-        perfectBobSmsBtn.style.display = '';
-        perfectBobSmsBtn.addEventListener('click', function () {
-            openSmsComposerWithBody(bobSmsText);
-        });
-    }
 }
 
 function showRoundInfoBubble(htmlContent, targetElement) {
