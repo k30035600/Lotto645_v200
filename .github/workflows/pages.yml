@@ -1,11 +1,12 @@
 # 정적 HTML → GitHub Pages (GitHub 스타터 static.yml과 동일 구조)
 # Settings → Pages → Source: GitHub Actions
-# 저장소 Settings → Actions → General → Workflow permissions: "Read and write" 필요할 수 있음
+# Environments → github-pages → 배포 브랜치에 main 포함 필수(기본 브랜치만 허용이면 main이 막힐 수 있음)
+# 저장소 Settings → Actions → General → Workflow permissions: Read and write
 name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
