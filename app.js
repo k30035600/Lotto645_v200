@@ -3627,7 +3627,8 @@ function syncBottomChartsToSortState() {
 // setupPanelLabelToggle → modules/eventHandlers.js 로 이동되었습니다.
 
 /**
- * 뷰포트 900px 이하·전체 레이아웃: 세 패널 가로 레일 스크롤 시 중앙(게임) 패널이 보이도록 맞춤.
+ * 뷰포트 900px 이하: 세 패널 가로 레일에서 첫 로드 시 게임 패널로 스크롤.
+ * 뷰포트가 패널보다 좁을 때 ‘가운데 정렬’하면 패널 좌·우가 잘리므로, 이때는 왼쪽 맞춤.
  */
 function setupHandheldThreePanelRail() {
     if (setupHandheldThreePanelRail._done) return;
@@ -3648,7 +3649,13 @@ function setupHandheldThreePanelRail() {
                 return;
             }
             const w = gameBox.getBoundingClientRect().width;
-            let target = gameBox.offsetLeft - (main.clientWidth - w) / 2;
+            const cw = main.clientWidth;
+            let target;
+            if (cw <= w) {
+                target = gameBox.offsetLeft;
+            } else {
+                target = gameBox.offsetLeft - (cw - w) / 2;
+            }
             const maxScroll = Math.max(0, main.scrollWidth - main.clientWidth);
             target = Math.max(0, Math.min(maxScroll, Math.round(target)));
             main.scrollLeft = target;
@@ -3699,6 +3706,7 @@ window.addEventListener('load', () => {
             setupResultFilterListeners();
             const navFetchBtn = document.getElementById('navFetchLatest');
             setupScrollToTopButton();
+            if (typeof setupMobileSwipe === 'function') setupMobileSwipe();
             if (navFetchBtn) {
                 navFetchBtn.addEventListener('click', (e) => {
                     e.preventDefault();

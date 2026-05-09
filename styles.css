@@ -595,14 +595,16 @@ a.header-action-btn {
         min-height: min(460px, 85dvh);
     }
 
+    /* 한 패널 폭을 뷰포트에 맞춰 잘림 최소화(고정 640px이면 좁은 폰에서 항상 좌우가 잘림) */
     .panel-box-stats,
     .panel-box-game,
     .panel-box-win {
         flex: 0 0 auto !important;
-        min-width: 640px !important;
-        width: 640px;
+        width: min(640px, calc(100vw - 20px));
+        min-width: min(640px, calc(100vw - 20px)) !important;
         max-width: none !important;
-        scroll-snap-align: center;
+        scroll-snap-align: start;
+        box-sizing: border-box;
     }
 }
 

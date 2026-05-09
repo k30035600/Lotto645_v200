@@ -698,6 +698,75 @@ function setupScrollToTopButton() {
     });
 }
 
+function setupMobileSwipe() {
+    // 900px 이하 모바일 환경에서 좌우 패널 전환을 부드럽게 하기 위한 커스텀 스와이프 로직
+    const mainContainer = document.querySelector('.main-container');
+    if (!mainContainer) return;
+
+    let startX = 0;
+    let startY = 0;
+    let isSwiping = false;
+
+    // 터치 시작 위치 기록
+    mainContainer.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 1) return; // 멀티터치 무시
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isSwiping = false;
+    }, { passive: true });
+
+    // 수평 스와이프 감지
+    mainContainer.addEventListener('touchmove', (e) => {
+        if (!startX || !startY) return;
+        
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        const diffX = currentX - startX;
+        const diffY = currentY - startY;
+
+        // 수직 이동보다 수평 이동이 크고, 최소 10px 이상 이동했을 때 스와이프로 간주
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+            isSwiping = true;
+        }
+    }, { passive: true });
+
+    // 터치 종료 시 스와이프 처리
+    mainContainer.addEventListener('touchend', (e) => {
+        if (!isSwiping || !startX) return;
+
+        const endX = e.changedTouches[0].clientX;
+        const diffX = endX - startX;
+        
+        // 50px 이상 쓸어넘겼을 때 패널 이동 (오른쪽 스와이프: -1, 왼쪽 스와이프: +1)
+        if (Math.abs(diffX) > 50) {
+            const panels = document.querySelectorAll('.panel-box');
+            if (panels.length === 0) return;
+
+            const containerWidth = mainContainer.clientWidth;
+            const scrollLeft = mainContainer.scrollLeft;
+            
+            // 현재 어떤 패널을 주로 보고 있는지 인덱스 계산 (0: 좌측, 1: 중앙, 2: 우측)
+            let currentIndex = Math.round(scrollLeft / containerWidth);
+            
+            if (diffX > 0 && currentIndex > 0) {
+                // 오른쪽으로 쓸어넘김 -> 왼쪽 패널로 이동
+                currentIndex--;
+            } else if (diffX < 0 && currentIndex < panels.length - 1) {
+                // 왼쪽으로 쓸어넘김 -> 오른쪽 패널로 이동
+                currentIndex++;
+            }
+
+            // 계산된 패널로 부드럽게 스크롤
+            panels[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+
+        // 초기화
+        startX = 0;
+        startY = 0;
+        isSwiping = false;
+    }, { passive: true });
+}
+
 if (typeof window !== "undefined") {
     window.initializeGameBox = initializeGameBox;
     window.setupSortButtons = setupSortButtons;
@@ -711,4 +780,5 @@ if (typeof window !== "undefined") {
     window.setupResultFilterListeners = setupResultFilterListeners;
     window.setupPanelLabelToggle = setupPanelLabelToggle;
     window.setupScrollToTopButton = setupScrollToTopButton;
+    window.setupMobileSwipe = setupMobileSwipe;
 }
