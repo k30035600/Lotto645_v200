@@ -829,15 +829,19 @@ async function loadAndDisplayResults() {
     }
 }
 
-/** 같은 오리진이면 상대 경로만 쓰면 안전(fetch URL 오타·혼합 콘텐츠 회피) */
+/** 같은 오리진이면 상대 경로만 쓰면 안전(fetch URL 오타·혼합 콘텐츠 회피). GitHub Pages 프로젝트는 /api가 아니라 /저장소명/api. */
 function resolveApiPath(path) {
     const p = path.charAt(0) === '/' ? path : '/' + path;
-    if (typeof getApiBaseUrl !== 'function') return p;
+    let prefix = '';
+    if (typeof getSameOriginApiPathPrefix === 'function') {
+        prefix = String(getSameOriginApiPathPrefix() || '').replace(/\/$/, '');
+    }
+    if (typeof getApiBaseUrl !== 'function') return prefix + p;
     const base = String(getApiBaseUrl()).replace(/\/$/, '');
     const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
         ? window.location.origin.replace(/\/$/, '') : '';
-    if (!base || !origin || base === origin) return p;
-    return base + p;
+    if (base && base !== origin) return base + p;
+    return prefix + p;
 }
 
 async function fetchWithRetry(url, init, retries) {
@@ -1014,8 +1018,7 @@ async function saveGamesToCSV() {
             }));
 
             try {
-                const baseUrl = getApiBaseUrl();
-                const response = await fetch(`${baseUrl}/api/delete-lotto023`, {
+                const response = await fetch(resolveApiPath('/api/delete-lotto023'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ items: itemsToDelete })
@@ -1172,8 +1175,7 @@ async function saveGamesToCSV() {
 
     // 새 게임 서버 전송
     try {
-        const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/save-lotto023`, {
+        const response = await fetch(resolveApiPath('/api/save-lotto023'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ games: gamesPayload })

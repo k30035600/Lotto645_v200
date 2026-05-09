@@ -1,0 +1,33 @@
+# GitHub Pages 정적 배포 (저장소 루트 → Pages)
+# 저장소 Settings → Pages → Build: GitHub Actions 로 전환 후 push 시 배포됩니다.
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exclude git metadata from site bundle
+        run: rm -rf .git
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4

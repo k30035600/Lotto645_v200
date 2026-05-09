@@ -2605,9 +2605,8 @@ function drawPremiumTicket(numbers) {
     if (downBtn) {
         downBtn.onclick = () => {
             const imgData = canvas.toDataURL('image/png');
-            const baseUrl = getApiBaseUrl();
 
-            fetch(`${baseUrl}/api/save-ticket-desktop`, {
+            fetch(resolveApiPath('/api/save-ticket-desktop'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: imgData, round: nextRound })

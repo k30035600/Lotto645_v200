@@ -478,8 +478,7 @@ async function runPerfectBobGamesWork(filterSnap) {
                 if (row) gamesJson.push(row);
             }
             try {
-                const baseUrl = getApiBaseUrl();
-                const res = await fetch(baseUrl + '/api/save-lotto-bob', {
+                const res = await fetch(resolveApiPath('/api/save-lotto-bob'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ games: gamesJson })

@@ -5,11 +5,15 @@
 
 /** API 서버 베이스 URL 가져오기 (Flask server.py). Live Server 등으로 HTML만 열면 origin이 5500 등이라 /api/* 가 없음 → meta 또는 8000 포트 보정 */
 function getApiBaseUrl() {
+    let configuredFromMeta = false;
     try {
         const meta = document.querySelector('meta[name="lotto-api-base"]');
         if (meta) {
             const c = (meta.getAttribute('content') || '').trim();
-            if (c) return c.replace(/\/$/, '');
+            if (c) {
+                configuredFromMeta = true;
+                return c.replace(/\/$/, '');
+            }
         }
     } catch (e) { /* ignore */ }
 
@@ -25,7 +29,35 @@ function getApiBaseUrl() {
         return 'http://' + host + ':8000';
     }
 
-    return (window.location.origin || ('http://' + host + ':8000')).replace(/\/$/, '');
+    const out = (window.location.origin || ('http://' + host + ':8000')).replace(/\/$/, '');
+    if (!configuredFromMeta && (host === 'github.io' || host.endsWith('.github.io'))) {
+        try {
+            console.warn(
+                '[ShareHarmony] GitHub Pages에는 백엔드가 없습니다. 최신회차·동기화·AI챗 등 API는 ' +
+                'meta name="lotto-api-base"에 Railway 등 API 베이스 URL을 넣으세요. 정적 .source 데이터만으로는 일부 기능이 동작합니다.'
+            );
+        } catch (e2) { /* ignore */ }
+    }
+    return out;
+}
+
+/**
+ * GitHub Pages 프로젝트 사이트(user.github.io/저장소명/)에서 동일 오리진 API 경로는 /api가 아니라 /저장소명/api 여야 함.
+ */
+function getSameOriginApiPathPrefix() {
+    try {
+        const host = window.location.hostname || '';
+        if (host !== 'github.io' && !host.endsWith('.github.io')) return '';
+        const path = window.location.pathname || '/';
+        const parts = path.split('/').filter(Boolean);
+        if (parts.length === 0) return '';
+        const last = parts[parts.length - 1];
+        if (last.indexOf('.') !== -1) parts.pop();
+        if (parts.length === 0) return '';
+        return '/' + parts[0];
+    } catch (e) {
+        return '';
+    }
 }
 
 /**
@@ -144,7 +176,7 @@ function formatSavedBallsInlineHtml(nums) {
 
 function shutdownServer() {
     if (!confirm('서버를 종료하시겠습니까?')) return;
-    fetch(getApiBaseUrl() + '/api/shutdown', { method: 'POST' })
+    fetch(typeof resolveApiPath === 'function' ? resolveApiPath('/api/shutdown') : (getApiBaseUrl() + '/api/shutdown'), { method: 'POST' })
         .then(() => {
             document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:1.2rem;color:#334155;">서버가 종료되었습니다. 이 탭을 닫아주세요.</div>';
         })
@@ -799,7 +831,7 @@ async function initializeApp() {
         /** 먼저 메타 호출 → 서버가 Lotto645.json을 xlsx와 동기화한 뒤 로드(Railway 등 JSON만 늦게 갱신된 경우 방지) */
         let meta = {};
         try {
-            const metaRes = await fetch(getApiBaseUrl() + '/api/lotto645-meta', { cache: 'no-store' });
+            const metaRes = await fetch(resolveApiPath('/api/lotto645-meta'), { cache: 'no-store' });
             meta = await metaRes.json().catch(() => ({}));
         } catch (e) { /* 메타 조회 실패 시 무시 */ }
 
@@ -827,7 +859,7 @@ async function initializeApp() {
         if (typeof updateRoundRangeDisplay === 'function') updateRoundRangeDisplay();
         // 동행복권 최신 추첨정보
         try {
-            const latestRes = await fetch(getApiBaseUrl() + '/api/lotto-latest', { cache: 'no-store' });
+            const latestRes = await fetch(resolveApiPath('/api/lotto-latest'), { cache: 'no-store' });
             const latestData = await latestRes.json().catch(() => ({}));
             if (latestData.returnValue === 'success' && latestData.drwNo != null) {
                 AppState.latestRoundApi = latestData.drwNo;
@@ -837,15 +869,14 @@ async function initializeApp() {
         // Lotto645.xlsx 1회~동행복권 최신회차 검증, 누락 회차 있으면 서버에서 Excel 보완 (sync-lotto645)
         if (lotto645Data.length > 0 && AppState.latestRoundApi != null && AppState.endRound != null && AppState.latestRoundApi > AppState.endRound) {
             const missingCount = AppState.latestRoundApi - AppState.endRound;
-            const base = getApiBaseUrl();
             try {
                 // 누락이 소수(예: 9회)일 때만 fetch-missing-rounds 호출. 대량(예: 1200회)이면 URL/부하 방지를 위해 생략하고 sync만 호출
                 if (missingCount > 0 && missingCount <= 100) {
                     const missingRounds = [];
                     for (let r = AppState.endRound + 1; r <= AppState.latestRoundApi; r++) missingRounds.push(r);
-                    await fetch(base + '/api/fetch-missing-rounds?rounds=' + missingRounds.join(','), { cache: 'no-store' });
+                    await fetch(resolveApiPath('/api/fetch-missing-rounds?rounds=' + missingRounds.join(',')), { cache: 'no-store' });
                 }
-                const syncRes = await fetch(base + '/api/sync-lotto645', { method: 'POST', cache: 'no-store' });
+                const syncRes = await fetch(resolveApiPath('/api/sync-lotto645'), { method: 'POST', cache: 'no-store' });
                 const syncData = await syncRes.json().catch(() => ({}));
                 if (syncData.returnValue === 'success' && syncData.added > 0) {
                     const newData = await loadFunc('', { bypassCache: true });
@@ -2857,8 +2888,7 @@ function sequentialPairTouchSet(sixNumbers) {
  */
 async function deleteAllResults() {
     try {
-        const baseUrl = getApiBaseUrl();
-        const response = await fetch(`${baseUrl}/api/delete-all-lotto023`, {
+        const response = await fetch(resolveApiPath('/api/delete-all-lotto023'), {
             method: 'POST'
         });
 

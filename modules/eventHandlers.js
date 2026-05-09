@@ -456,8 +456,7 @@ function setupDeleteSelectedButton() {
                 });
 
                 try {
-                    const baseUrl = getApiBaseUrl();
-                    const response = await fetch(`${baseUrl}/api/delete-lotto023`, {
+                    const response = await fetch(resolveApiPath('/api/delete-lotto023'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ items: itemsToDel })

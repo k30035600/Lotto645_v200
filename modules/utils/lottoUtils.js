@@ -847,8 +847,8 @@ async function loadAndShowLottoRound(roundNo, targetElement) {
     showRoundInfoBubble('<div style="text-align:center; padding:20px;"><p>데이터를 불러오는 중입니다...</p></div>', targetElement);
 
     try {
-        const baseUrl = (typeof getApiBaseUrl === 'function') ? getApiBaseUrl() : '';
-        const url = roundNo ? `${baseUrl}/api/lotto-round/${roundNo}` : `${baseUrl}/api/lotto-latest`;
+        const rel = roundNo ? `/api/lotto-round/${roundNo}` : '/api/lotto-latest';
+        const url = (typeof resolveApiPath === 'function') ? resolveApiPath(rel) : rel;
 
         const res = await fetch(url);
         const data = await res.json().catch(() => ({ returnValue: 'fail' }));
